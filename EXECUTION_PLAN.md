@@ -73,7 +73,7 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 - **GATE:** `make migrate` green; model specs pass — PII columns encrypted at rest, validations present,
   fingerprint uniqueness enforced.
 
-### `[ ]` T004 — Authentication (JWT)
+### `[x]` T004 — Authentication (JWT)
 - **depends_on:** T003
 - **do:** `Auth::SessionsController#create` → JWT on valid creds. Token-verify concern guarding the API.
 - **GATE:** request spec — valid login → `200` + token; protected endpoint without token → `401`;
@@ -263,6 +263,9 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 - [T003] `users.role` integer-backed enum {operator:0, analyst:1, admin:2}; `has_secure_password` (bcrypt added).
 - [T003] `state_transitions` is append-only (created_at only, DB default `CURRENT_TIMESTAMP`).
 - [T003] AR encryption keys + blind-index key read from ENV with NON-SECRET dev defaults, set in `config/application.rb` so the `active_record.encryption` railtie applies them before `config/initializers` run.
+- [T004] JWT: HS256, 24h expiry, payload `{sub, role, exp}`; signed with `ENV["JWT_SECRET"]` (falls back to `secret_key_base` in dev). `JsonWebToken.decode` returns nil for any invalid/expired/tampered token → uniform 401.
+- [T004] Auth is global: `Authenticatable` concern in `ApplicationController` (`before_action :authenticate_request!`); public endpoints opt out via `skip_before_action`. Routes: `POST /api/v1/login` (public), `GET /api/v1/me` (protected, used to exercise the 401 paths).
+- [T004][dev-note] Adding a brand-new top-level `app/<dir>/` (e.g. `controllers/concerns`) requires an `api` container restart so Zeitwerk registers it as an autoload root; `make test` is unaffected (fresh boot per run).
 
 ## Backlog (out of scope now)
 > Deferred ideas; do not build unless a task references them.
