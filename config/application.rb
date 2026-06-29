@@ -48,5 +48,21 @@ module Bravo
     # HMAC key for the document_number blind index (document_fingerprint).
     config.x.blind_index_key =
       ENV.fetch("BLIND_INDEX_KEY", "dev_only_blind_index_key_replace_in_production_0004")
+
+    # Country strategies are sealed under app/countries/<code>/ and addressed as
+    # Countries::<CODE>::<Strategy>. By default Rails would treat app/countries as
+    # an autoload root (stripping the namespace), so we instead map the directory
+    # to the Countries namespace and teach Zeitwerk the country-code acronyms.
+    initializer "bravo.countries_namespace", before: :set_autoload_paths do |app|
+      countries_dir = app.root.join("app/countries").to_s
+      app.config.eager_load_paths.delete(countries_dir)
+      app.config.autoload_paths.delete(countries_dir)
+
+      Object.const_set(:Countries, Module.new) unless Object.const_defined?(:Countries)
+
+      main = Rails.autoloaders.main
+      main.inflector.inflect("mx" => "MX", "es" => "ES")
+      main.push_dir(countries_dir, namespace: Countries)
+    end
   end
 end

@@ -86,7 +86,7 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 - **GATE:** policy specs cover allow + deny per role; serializer spec — `operator` response omits
   `document_number`/`monthly_income`.
 
-### `[ ]` T006 — Country registry + MX strategy
+### `[x]` T006 — Country registry + MX strategy
 - **depends_on:** T003
 - **do:** `Countries::Registry.for(code)` returning a config with `validator`/`bank_provider`/
   `normalizer`/`state_machine`. Base interfaces under `countries/base/`. Implement **MX**: `Validator`
@@ -268,6 +268,10 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 - [T004][dev-note] Adding a brand-new top-level `app/<dir>/` (e.g. `controllers/concerns`) requires an `api` container restart so Zeitwerk registers it as an autoload root; `make test` is unaffected (fresh boot per run).
 - [T005] Role matrix: operator = create+read; analyst = +update_status; admin = all (`CreditApplicationPolicy`). Pundit wired into `ApplicationController` with `pundit_user = current_user` and `Pundit::NotAuthorizedError → 403`.
 - [T005] PII visibility: `view_pii?` = analyst||admin. `CreditApplicationSerializer` is a PORO taking `(application, user:)`; it always returns non-PII fields and adds full_name/document_number/monthly_income only when `view_pii?` is true (operators get a redacted view).
+- [T006] Country strategies live under `app/countries/<code>/` and resolve as `Countries::<CODE>::<Strategy>`. Rails would otherwise treat `app/countries` as an autoload root (stripping the namespace), so `config/application.rb` maps the dir to the `Countries` namespace via a `before: :set_autoload_paths` initializer + Zeitwerk inflections `mx→MX`, `es→ES`.
+- [T006] `Countries::Registry.for(code)` builds a `Country` (Data) from a country namespace by convention (`namespace::Validator/BankProvider/Normalizer/StateMachine`). Adding a country = `app/countries/<code>/` + ONE line in `Registry::NAMESPACES`.
+- [T006] Internal normalized bank shape = `Countries::BankData(total_debt, credit_score, account_status)`. MX provider is simulated, deterministic from `document_number` (stable across fetches/tests).
+- [T006] MX CURP validation = strict format regex (incl. 32 state codes + NE) + RENAPO check-digit algorithm. `Countries::MX::StateMachine` is a placeholder (`INITIAL_STATE`); full AASM graph lands in T009.
 
 ## Backlog (out of scope now)
 > Deferred ideas; do not build unless a task references them.
