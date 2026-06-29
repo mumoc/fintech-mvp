@@ -9,6 +9,8 @@ Rails.application.routes.draw do
     namespace :v1 do
       post "login", to: "auth/sessions#create"
       get "me", to: "profiles#show"
+
+      resources :credit_applications, only: [ :create ]
     end
   end
 end

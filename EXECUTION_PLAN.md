@@ -95,7 +95,7 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 - **GATE:** unit specs — valid CURP passes, malformed/invalid-check-digit CURP fails; normalizer maps
   MX payload to internal struct.
 
-### `[ ]` T007 — Create application (service + endpoint)
+### `[x]` T007 — Create application (service + endpoint)
 - **depends_on:** T005, T006
 - **do:** `Result`. `Applications::CreateApplication.call!` → validates via country validator, fetches +
   normalizes bank data, persists, sets initial state, applies MX rule (income/amount ratio). Wire
@@ -272,6 +272,10 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 - [T006] `Countries::Registry.for(code)` builds a `Country` (Data) from a country namespace by convention (`namespace::Validator/BankProvider/Normalizer/StateMachine`). Adding a country = `app/countries/<code>/` + ONE line in `Registry::NAMESPACES`.
 - [T006] Internal normalized bank shape = `Countries::BankData(total_debt, credit_score, account_status)`. MX provider is simulated, deterministic from `document_number` (stable across fetches/tests).
 - [T006] MX CURP validation = strict format regex (incl. 32 state codes + NE) + RENAPO check-digit algorithm. `Countries::MX::StateMachine` is a placeholder (`INITIAL_STATE`); full AASM graph lands in T009.
+- [T007] Result pattern: `Result.success(value)` / `Result.failure(code, messages)`; domain failures are returned, not raised. `CreateApplication.call!` rescues unexpected `RecordInvalid`/`RecordNotUnique` into failures.
+- [T007] MX intake business rule is sealed in `Countries::MX::StateMachine#intake` (keeps the 4-strategy contract). `RATIO_LIMIT = 30`: `amount_requested > monthly_income * 30` → status `under_review` + `flags{requires_review:true, reason}`; otherwise initial state `received`.
+- [T007] `document_type` is derived from the country (`MX::Validator::DOCUMENT_TYPE = "CURP"`), not sent by the client; `bank_record.provider` from `BankProvider::PROVIDER`; `requested_at` set server-side. bank fetch+persist happen in one transaction.
+- [T007] All create domain failures → HTTP 422 (`unsupported_country` / `invalid_document` / `validation_error` / `duplicate_document`). Use Rack 3.2 symbol `:unprocessable_content`.
 
 ## Backlog (out of scope now)
 > Deferred ideas; do not build unless a task references them.

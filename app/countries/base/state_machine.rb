@@ -1,9 +1,14 @@
 module Countries
   module Base
-    # Marker base for a country's status state machine. The AASM wiring and the
-    # per-country transition graph land in T009 (state machine + status update);
-    # for now it only anchors the registry contract.
+    # A country's status policy. Decides the initial status + flags for a new
+    # application (intake). The AASM transition graph for status changes lands in
+    # T009; this anchors the intake decision used at creation time.
     class StateMachine
+      # @param application [CreditApplication]
+      # @return [Countries::IntakeDecision]
+      def intake(_application)
+        raise NotImplementedError, "#{self.class} must implement #intake"
+      end
     end
   end
 end

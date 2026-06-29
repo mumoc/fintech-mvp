@@ -3,6 +3,8 @@ module Countries
     # Validates a Mexican CURP: 18-character format plus the RENAPO check-digit
     # algorithm (the last digit is deterministic over the first 17 characters).
     class Validator < Base::Validator
+      DOCUMENT_TYPE = "CURP".freeze
+
       # 4 letters, YYMMDD, sex, 2-letter state, 3 consonants, homoclave, check digit.
       STATE_CODES = %w[
         AS BC BS CC CL CM CS CH DF DG GT GR HG JC MC MN MS NT NL OC PL QT QR
