@@ -24,11 +24,11 @@ migrate: ## Create/migrate the database (incl. PL/pgSQL triggers)
 seed: ## Load seed data (users per role + sample applications)
 	$(COMPOSE) run --rm api ./bin/rails db:seed
 
-test: ## Run the full test suite
-	$(COMPOSE) run --rm -e RAILS_ENV=test api bash -c "./bin/rails db:prepare && ./bin/rails test"
+test: ## Run the full test suite (RSpec)
+	$(COMPOSE) run --rm -e RAILS_ENV=test api bash -c "./bin/rails db:prepare && bundle exec rspec"
 
-lint: ## Run static analysis (wired up in T002)
-	@echo "lint: RuboCop + bundler-audit are wired in T002"
+lint: ## Run static analysis (RuboCop + bundler-audit)
+	$(COMPOSE) run --rm api bash -c "bundle exec rubocop && bundle exec bundle-audit check --update"
 
 console: ## Open a Rails console
 	$(COMPOSE) run --rm api ./bin/rails console

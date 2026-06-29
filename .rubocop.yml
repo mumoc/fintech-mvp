@@ -1,0 +1,18 @@
+# Rails' curated RuboCop ruleset (rubocop-rails + rubocop-performance, omakase
+# style). Intentionally lenient on formatting so it stays out of the way while
+# still catching real issues.
+inherit_gem:
+  rubocop-rails-omakase: rubocop.yml
+
+AllCops:
+  TargetRubyVersion: 3.3
+  NewCops: disable
+  Exclude:
+    - "bin/**/*"
+    - "db/schema.rb"
+    - "vendor/**/*"
+    - "node_modules/**/*"
+    - "tmp/**/*"
+    - "log/**/*"
+    - "storage/**/*"
+    - "frontend/**/*"

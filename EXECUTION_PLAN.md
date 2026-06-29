@@ -59,7 +59,7 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 - **GATE:** `make up` boots all containers; `curl localhost:3000/up` → `200`; `make test` runs (0 tests OK).
 - **dod:** Fresh clone boots; README "Quick start" stub written.
 
-### `[ ]` T002 — Quality gates
+### `[x]` T002 — Quality gates
 - **depends_on:** T001
 - **do:** RSpec, RuboCop, `bundler-audit`, `bullet` (enabled in test env to detect N+1). Wire into Makefile.
 - **GATE:** `make lint` clean; `make test` passes; `bundler-audit` reports no known CVEs.
@@ -253,6 +253,10 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 > Agent appends every non-specified decision here, one line each.
 - (e.g.) MX ratio threshold = amount_requested ≤ monthly_income × 30 — chosen as plausible consumer-credit cap.
 - (e.g.) ES additional-review threshold = €50,000.
+- [T001] Ruby pinned to 3.3.6; dev gems install into a named volume via `bin/docker-entrypoint` so a Gemfile change needs no image rebuild. `database.yml` is fully env-driven (one file for local/CI/k8s).
+- [T002] Rails bumped 7.1.2 → 7.2.3.1 (still the Rails 7 line). bundler-audit flagged 9 CVEs in 7.1.6 (Action View/Storage/Support) with fixes only available in `>= 7.2.3.1`; security gate forced the bump. Adopted `config.load_defaults 7.2`.
+- [T002] RuboCop ruleset = `rubocop-rails-omakase` (Rails' curated style) — low-friction, idiomatic; keeps lint out of the way of the TDD flow.
+- [T002] Bullet: raise on N+1 in test (fails the suite), log in development; unused-eager-loading checks disabled (noisy, not what we gate on).
 
 ## Backlog (out of scope now)
 > Deferred ideas; do not build unless a task references them.

@@ -61,4 +61,14 @@ Rails.application.configure do
 
   # Raise error when a before_action's only/except options reference missing actions
   config.action_controller.raise_on_missing_callback_actions = true
+
+  # N+1 detection — fail the suite on N+1 queries (see spec/rails_helper.rb for
+  # the per-example request wrapping).
+  config.after_initialize do
+    Bullet.enable = true
+    Bullet.raise = true
+    Bullet.n_plus_one_query_enable = true
+    # Unused-eager-loading checks are noisy and not what we gate on; keep off.
+    Bullet.unused_eager_loading_enable = false
+  end
 end
