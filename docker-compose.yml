@@ -1,0 +1,65 @@
+# Local development stack for the Bravo Fintech MVP.
+# `make up` boots api + postgres + redis and waits until the api is healthy.
+# Dev credentials below are non-secret defaults; real secrets are injected via
+# the environment in non-local environments (see .env.example / k8s).
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${DATABASE_USER:-bravo}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-bravo}
+      POSTGRES_DB: ${DATABASE_NAME:-bravo_development}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-bravo}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  api:
+    build: .
+    command: ./bin/rails server -b 0.0.0.0
+    environment:
+      RAILS_ENV: ${RAILS_ENV:-development}
+      DATABASE_HOST: postgres
+      DATABASE_USER: ${DATABASE_USER:-bravo}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-bravo}
+      DATABASE_NAME: ${DATABASE_NAME:-bravo_development}
+      TEST_DATABASE_NAME: ${TEST_DATABASE_NAME:-bravo_test}
+      REDIS_URL: redis://redis:6379/0
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - bundle_cache:/usr/local/bundle
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:3000/up || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 90s
+
+volumes:
+  pg_data:
+  redis_data:
+  bundle_cache:

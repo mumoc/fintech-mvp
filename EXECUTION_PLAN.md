@@ -52,7 +52,7 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 
 # MILESTONE M1 — Foundation & synchronous API  *(Day 1)*
 
-### `[ ]` T001 — Project bootstrap
+### `[x]` T001 — Project bootstrap
 - **depends_on:** —
 - **do:** Rails 7 API-only app. `docker-compose.yml` with services: `api`, `postgres`, `redis`.
   `Makefile` skeleton (`up`, `down`, `test`, `lint`, `migrate`, `console`). Health endpoint `GET /up`.

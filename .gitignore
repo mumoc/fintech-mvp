@@ -1,1 +1,32 @@
+# See https://help.github.com/articles/ignoring-files for more about ignoring files.
+
+# Bundler
+/.bundle
+
+# Logs and temp files
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+
+# Uploaded files / SQLite databases in storage
+/storage/*
+!/storage/.keep
+
+# Rails master key and any other secrets
+/config/master.key
+/config/credentials/*.key
+
+# Local environment overrides
+/.env
+/.env.*
+!/.env.example
+
+# Compiled assets
+/public/assets
+
+# Editor / OS noise
+.DS_Store
+
+# Keep CLAUDE.md tracked even if a global gitignore would skip it
 !CLAUDE.md

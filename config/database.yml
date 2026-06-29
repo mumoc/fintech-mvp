@@ -1,0 +1,27 @@
+# PostgreSQL configuration. Connection details come from the environment so the
+# same file works for local Docker Compose, CI, and Kubernetes without edits.
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  host: <%= ENV.fetch("DATABASE_HOST", "localhost") %>
+  port: <%= ENV.fetch("DATABASE_PORT", 5432) %>
+  username: <%= ENV.fetch("DATABASE_USER", "bravo") %>
+  password: <%= ENV.fetch("DATABASE_PASSWORD", "bravo") %>
+
+development:
+  <<: *default
+  database: <%= ENV.fetch("DATABASE_NAME", "bravo_development") %>
+
+# The test database is erased and re-generated on each run; keep it distinct
+# from development.
+test:
+  <<: *default
+  database: <%= ENV.fetch("TEST_DATABASE_NAME", "bravo_test") %>
+
+# In production a full DATABASE_URL (or the discrete vars above) is supplied via
+# the environment / secrets manager. Never commit real credentials.
+production:
+  <<: *default
+  database: <%= ENV.fetch("DATABASE_NAME", "bravo_production") %>
+  url: <%= ENV["DATABASE_URL"] %>

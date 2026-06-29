@@ -1,0 +1,16 @@
+#!/bin/bash -e
+
+# Install gems if the bundle is not satisfied. In development gems live in a
+# named volume, so this is a no-op after the first boot.
+bundle check >/dev/null 2>&1 || bundle install
+
+# Ensure the pid dir exists and drop any stale server pid from a previous run.
+mkdir -p tmp/pids
+rm -f tmp/pids/server.pid
+
+# When booting the web server, create/migrate the database first.
+if [ "${1}" == "./bin/rails" ] && [ "${2}" == "server" ]; then
+  ./bin/rails db:prepare
+fi
+
+exec "${@}"
