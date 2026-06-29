@@ -79,7 +79,7 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 - **GATE:** request spec — valid login → `200` + token; protected endpoint without token → `401`;
   tampered/expired token → `401`.
 
-### `[ ]` T005 — Authorization (Pundit)
+### `[x]` T005 — Authorization (Pundit)
 - **depends_on:** T004
 - **do:** Roles `admin`/`analyst`/`operator`. `CreditApplicationPolicy` (operator: create/read;
   analyst: + change_status; admin: all). Scope-aware serializer hides PII from unauthorized roles.
@@ -266,6 +266,8 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 - [T004] JWT: HS256, 24h expiry, payload `{sub, role, exp}`; signed with `ENV["JWT_SECRET"]` (falls back to `secret_key_base` in dev). `JsonWebToken.decode` returns nil for any invalid/expired/tampered token → uniform 401.
 - [T004] Auth is global: `Authenticatable` concern in `ApplicationController` (`before_action :authenticate_request!`); public endpoints opt out via `skip_before_action`. Routes: `POST /api/v1/login` (public), `GET /api/v1/me` (protected, used to exercise the 401 paths).
 - [T004][dev-note] Adding a brand-new top-level `app/<dir>/` (e.g. `controllers/concerns`) requires an `api` container restart so Zeitwerk registers it as an autoload root; `make test` is unaffected (fresh boot per run).
+- [T005] Role matrix: operator = create+read; analyst = +update_status; admin = all (`CreditApplicationPolicy`). Pundit wired into `ApplicationController` with `pundit_user = current_user` and `Pundit::NotAuthorizedError → 403`.
+- [T005] PII visibility: `view_pii?` = analyst||admin. `CreditApplicationSerializer` is a PORO taking `(application, user:)`; it always returns non-PII fields and adds full_name/document_number/monthly_income only when `view_pii?` is true (operators get a redacted view).
 
 ## Backlog (out of scope now)
 > Deferred ideas; do not build unless a task references them.
