@@ -29,7 +29,21 @@ class CreditApplicationSerializer
       flags: application.flags,
       requested_at: application.requested_at,
       created_at: application.created_at,
-      updated_at: application.updated_at
+      updated_at: application.updated_at,
+      bank_record: bank_record_summary
+    }
+  end
+
+  # Normalized bank summary (not PII). nil until bank data has been fetched.
+  def bank_record_summary
+    record = application.bank_record
+    return nil unless record
+
+    {
+      provider: record.provider,
+      total_debt: record.total_debt,
+      credit_score: record.credit_score,
+      account_status: record.account_status
     }
   end
 

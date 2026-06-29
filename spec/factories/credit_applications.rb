@@ -8,5 +8,11 @@ FactoryBot.define do
     monthly_income { 25_000.00 }
     requested_at { Time.current }
     status { "received" }
+
+    trait :with_bank_record do
+      after(:create) do |application|
+        create(:bank_record, credit_application: application)
+      end
+    end
   end
 end

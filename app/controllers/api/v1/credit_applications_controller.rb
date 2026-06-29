@@ -1,6 +1,36 @@
 module Api
   module V1
     class CreditApplicationsController < ApplicationController
+      # GET /api/v1/credit_applications
+      def index
+        authorize CreditApplication
+
+        page = Applications::Search.call(
+          scope: policy_scope(CreditApplication),
+          filters: params.permit(:country, :status, :from, :to).to_h.symbolize_keys,
+          page: params[:page],
+          per_page: params[:per_page]
+        )
+
+        render json: {
+          data: page.records.map { |application| serialize(application) },
+          meta: {
+            page: page.page,
+            per_page: page.per_page,
+            total: page.total,
+            total_pages: page.total_pages
+          }
+        }, status: :ok
+      end
+
+      # GET /api/v1/credit_applications/:id
+      def show
+        application = policy_scope(CreditApplication).includes(:bank_record).find(params[:id])
+        authorize application
+
+        render json: serialize(application), status: :ok
+      end
+
       # POST /api/v1/credit_applications
       def create
         authorize CreditApplication

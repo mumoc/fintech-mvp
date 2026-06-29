@@ -103,7 +103,7 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 - **GATE:** service specs (success + each failure path); request specs — `201` valid; `422` invalid
   document; `422` unsupported country; `bank_record` persisted; MX ratio breach → correct flag/state.
 
-### `[ ]` T008 — Read + list
+### `[x]` T008 — Read + list
 - **depends_on:** T007
 - **do:** `GET /credit_applications/:id` (scope-aware, eager-load `bank_record`). `GET /credit_applications`
   with filters `country`, `status`, `from`/`to`, **paginated**.
@@ -276,6 +276,8 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 - [T007] MX intake business rule is sealed in `Countries::MX::StateMachine#intake` (keeps the 4-strategy contract). `RATIO_LIMIT = 30`: `amount_requested > monthly_income * 30` → status `under_review` + `flags{requires_review:true, reason}`; otherwise initial state `received`.
 - [T007] `document_type` is derived from the country (`MX::Validator::DOCUMENT_TYPE = "CURP"`), not sent by the client; `bank_record.provider` from `BankProvider::PROVIDER`; `requested_at` set server-side. bank fetch+persist happen in one transaction.
 - [T007] All create domain failures → HTTP 422 (`unsupported_country` / `invalid_document` / `validation_error` / `duplicate_document`). Use Rack 3.2 symbol `:unprocessable_content`.
+- [T008] Listing via `Applications::Search` query object: filters `country`/`status`/`created_at` range (`from`/`to`), eager-loads `bank_record` (no N+1, Bullet-enforced), orders by `created_at desc`, offset pagination (default per_page 25, max 100) with `meta{page,per_page,total,total_pages}`; runs on `policy_scope`.
+- [T008] Serializer now includes a non-PII `bank_record` summary (provider/total_debt/credit_score/account_status). `show` eager-loads `bank_record`; `ActiveRecord::RecordNotFound → 404`.
 
 ## Backlog (out of scope now)
 > Deferred ideas; do not build unless a task references them.

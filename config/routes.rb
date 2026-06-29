@@ -10,7 +10,7 @@ Rails.application.routes.draw do
       post "login", to: "auth/sessions#create"
       get "me", to: "profiles#show"
 
-      resources :credit_applications, only: [ :create ]
+      resources :credit_applications, only: [ :index, :show, :create ]
     end
   end
 end
