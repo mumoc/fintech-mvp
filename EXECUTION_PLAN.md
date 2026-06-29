@@ -64,7 +64,7 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 - **do:** RSpec, RuboCop, `bundler-audit`, `bullet` (enabled in test env to detect N+1). Wire into Makefile.
 - **GATE:** `make lint` clean; `make test` passes; `bundler-audit` reports no known CVEs.
 
-### `[ ]` T003 — Schema foundations
+### `[x]` T003 — Schema foundations
 - **depends_on:** T002
 - **do:** Enable `pgcrypto`. Migrations (UUID PKs): `users`, `credit_applications`, `bank_records`,
   `state_transitions`. ActiveRecord encryption: deterministic for `document_number`, non-deterministic
@@ -257,6 +257,12 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 - [T002] Rails bumped 7.1.2 → 7.2.3.1 (still the Rails 7 line). bundler-audit flagged 9 CVEs in 7.1.6 (Action View/Storage/Support) with fixes only available in `>= 7.2.3.1`; security gate forced the bump. Adopted `config.load_defaults 7.2`.
 - [T002] RuboCop ruleset = `rubocop-rails-omakase` (Rails' curated style) — low-friction, idiomatic; keeps lint out of the way of the TDD flow.
 - [T002] Bullet: raise on N+1 in test (fails the suite), log in development; unused-eager-loading checks disabled (noisy, not what we gate on).
+- [T003] All domain tables use UUID PKs (`gen_random_uuid()` via pgcrypto); `citext` enabled for `users.email`.
+- [T003] PII columns are `text` (hold ciphertext): `full_name`/`monthly_income` non-deterministic, `document_number` deterministic (searchable/dedupe). `monthly_income` keeps decimal semantics via `attribute :decimal` + `encrypts`. `amount_requested` is non-PII → plaintext `decimal(15,2)`.
+- [T003] `document_fingerprint` = HMAC-SHA256(blind_index_key, document_number.strip.upcase), unique-indexed for dedupe without decrypting.
+- [T003] `users.role` integer-backed enum {operator:0, analyst:1, admin:2}; `has_secure_password` (bcrypt added).
+- [T003] `state_transitions` is append-only (created_at only, DB default `CURRENT_TIMESTAMP`).
+- [T003] AR encryption keys + blind-index key read from ENV with NON-SECRET dev defaults, set in `config/application.rb` so the `active_record.encryption` railtie applies them before `config/initializers` run.
 
 ## Backlog (out of scope now)
 > Deferred ideas; do not build unless a task references them.

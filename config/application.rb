@@ -28,5 +28,25 @@ module Bravo
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
+
+    # New domain models use UUID primary keys (see PLAN §1).
+    config.generators do |g|
+      g.orm :active_record, primary_key_type: :uuid
+    end
+
+    # Active Record encryption keys. Set here (not in an initializer) because the
+    # active_record.encryption railtie applies these before config/initializers
+    # run. In production these come from the secrets manager / ENV; the dev
+    # defaults below are NON-SECRET placeholders and must be overridden.
+    config.active_record.encryption.primary_key =
+      ENV.fetch("AR_ENCRYPTION_PRIMARY_KEY", "dev_only_primary_key_replace_in_production_0001")
+    config.active_record.encryption.deterministic_key =
+      ENV.fetch("AR_ENCRYPTION_DETERMINISTIC_KEY", "dev_only_deterministic_key_replace_in_prod_0002")
+    config.active_record.encryption.key_derivation_salt =
+      ENV.fetch("AR_ENCRYPTION_KEY_DERIVATION_SALT", "dev_only_key_derivation_salt_replace_in_prod_0003")
+
+    # HMAC key for the document_number blind index (document_fingerprint).
+    config.x.blind_index_key =
+      ENV.fetch("BLIND_INDEX_KEY", "dev_only_blind_index_key_replace_in_production_0004")
   end
 end

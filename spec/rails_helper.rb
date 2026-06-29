@@ -63,6 +63,9 @@ RSpec.configure do |config|
   # arbitrary gems may also be filtered via:
   # config.filter_gems_from_backtrace("gem name")
 
+  # FactoryBot short syntax (build/create instead of FactoryBot.build/create).
+  config.include FactoryBot::Syntax::Methods
+
   # Wrap each example so Bullet can detect N+1 queries. Bullet is configured to
   # raise in the test environment (see config/environments/test.rb), so any N+1
   # introduced by a spec fails the suite.
@@ -72,5 +75,13 @@ RSpec.configure do |config|
       Bullet.perform_out_of_channel_notifications if Bullet.notification?
       Bullet.end_request
     end
+  end
+end
+
+# Expressive model/controller matchers (validate_presence_of, belong_to, ...).
+Shoulda::Matchers.configure do |config|
+  config.integrate do |with|
+    with.test_framework :rspec
+    with.library :rails
   end
 end
