@@ -5,6 +5,9 @@ import { subscribeToApplications } from "../api/cable";
 import type { Application, Page } from "../api/types";
 import { ApiError } from "../api/client";
 import { ErrorBanner } from "../components/ErrorBanner";
+import { RiskBadge } from "../components/RiskBadge";
+import { RiskHelp } from "../components/RiskHelp";
+import { formatMoney } from "../utils/formatters";
 
 const STATUSES = ["received", "under_review", "approved", "rejected", "cancelled"];
 
@@ -85,9 +88,14 @@ export function ApplicationsPage() {
               <tr className="border-b text-left text-gray-500">
                 <th className="py-2">Country</th>
                 <th className="py-2">Document</th>
-                <th className="py-2">Amount</th>
+                <th className="py-2">Amount requested</th>
                 <th className="py-2">Status</th>
-                <th className="py-2">Risk</th>
+                <th className="py-2">
+                  <span className="inline-flex items-center">
+                    Risk
+                    <RiskHelp />
+                  </span>
+                </th>
                 <th className="py-2"></th>
               </tr>
             </thead>
@@ -96,11 +104,11 @@ export function ApplicationsPage() {
                 <tr key={app.id} className="border-b">
                   <td className="py-2">{app.country}</td>
                   <td className="py-2">{app.document_type}</td>
-                  <td className="py-2">{app.amount_requested}</td>
+                  <td className="py-2">{formatMoney(app.amount_requested, app.country)}</td>
                   <td className="py-2">
                     <span className="rounded bg-gray-100 px-2 py-1 text-xs">{app.status}</span>
                   </td>
-                  <td className="py-2">{app.risk_score ?? "—"}</td>
+                  <td className="py-2"><RiskBadge score={app.risk_score} /></td>
                   <td className="py-2 text-right">
                     <Link to={`/applications/${app.id}`} className="text-blue-600 hover:underline">
                       View

@@ -9,6 +9,25 @@ import { ApiError } from "../api/client";
 vi.mock("../api/applications");
 
 describe("NewApplicationPage", () => {
+  it("uses text inputs with decimal keyboards for money fields", async () => {
+    vi.mocked(api.listCountries).mockResolvedValue({
+      data: [{ code: "MX", document_type: "CURP" }],
+    });
+
+    render(
+      <MemoryRouter>
+        <NewApplicationPage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByLabelText(/amount requested/i)).toHaveAttribute("type", "text");
+    expect(screen.getByLabelText(/amount requested/i)).toHaveAttribute("inputmode", "decimal");
+    expect(screen.getByLabelText(/amount requested/i)).toHaveAttribute("autocomplete", "off");
+    expect(screen.getByLabelText(/monthly income/i)).toHaveAttribute("type", "text");
+    expect(screen.getByLabelText(/monthly income/i)).toHaveAttribute("inputmode", "decimal");
+    expect(screen.getByLabelText(/monthly income/i)).toHaveAttribute("autocomplete", "off");
+  });
+
   it("surfaces the 422 validation message on an invalid document", async () => {
     vi.mocked(api.listCountries).mockResolvedValue({
       data: [{ code: "MX", document_type: "CURP" }],

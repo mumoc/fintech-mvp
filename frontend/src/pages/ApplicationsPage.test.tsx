@@ -37,9 +37,11 @@ describe("ApplicationsPage", () => {
       </MemoryRouter>,
     );
 
+    expect(await screen.findByRole("columnheader", { name: /amount requested/i })).toBeInTheDocument();
     expect(await screen.findByText("CURP")).toBeInTheDocument();
-    expect(screen.getByText("100000.0")).toBeInTheDocument();
-    expect(screen.getByText("31")).toBeInTheDocument();
+    expect(screen.getByText("MX$100,000.00")).toBeInTheDocument();
+    expect(screen.getByLabelText(/medium risk, score 31 out of 100/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/lower is better/i)).toBeInTheDocument();
     // status badge in the row (the filter dropdown also contains "received")
     expect(screen.getByRole("link", { name: /view/i })).toHaveAttribute("href", "/applications/app-1");
   });

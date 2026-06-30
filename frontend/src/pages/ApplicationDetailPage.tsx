@@ -1,10 +1,13 @@
-import { useCallback, useEffect, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getApplication, updateStatus } from "../api/applications";
 import { subscribeToApplications } from "../api/cable";
 import type { Application } from "../api/types";
 import { ApiError } from "../api/client";
 import { ErrorBanner } from "../components/ErrorBanner";
+import { RiskBadge } from "../components/RiskBadge";
+import { RiskHelp } from "../components/RiskHelp";
+import { formatMoney } from "../utils/formatters";
 
 // Events available from each status (mirrors the backend AASM graph).
 const EVENTS_BY_STATUS: Record<string, string[]> = {
@@ -77,20 +80,20 @@ export function ApplicationDetailPage() {
       <ErrorBanner error={error} />
 
       <dl className="grid grid-cols-2 gap-3 rounded-lg border bg-white p-4 text-sm">
-        <Field label="Amount requested" value={app.amount_requested} />
-        <Field label="Risk score" value={app.risk_score ?? "—"} />
+        <Field label="Amount requested" value={formatMoney(app.amount_requested, app.country)} />
+        <Field label={<RiskLabel />} value={<RiskBadge score={app.risk_score} />} />
         {app.full_name !== undefined && <Field label="Full name" value={app.full_name} />}
         {app.document_number !== undefined && (
           <Field label="Document" value={app.document_number} />
         )}
         {app.monthly_income !== undefined && (
-          <Field label="Monthly income" value={app.monthly_income} />
+          <Field label="Monthly income" value={formatMoney(app.monthly_income, app.country)} />
         )}
-        <Field label="Flags" value={JSON.stringify(app.flags)} />
+        <Field label="Review flags" value={<FlagsSummary flags={app.flags} />} />
         {app.bank_record && (
           <>
             <Field label="Bank provider" value={app.bank_record.provider} />
-            <Field label="Total debt" value={app.bank_record.total_debt ?? "—"} />
+            <Field label="Total debt" value={formatMoney(app.bank_record.total_debt, app.country)} />
             <Field label="Credit score" value={app.bank_record.credit_score ?? "—"} />
             <Field label="Account status" value={app.bank_record.account_status ?? "—"} />
           </>
@@ -120,11 +123,39 @@ export function ApplicationDetailPage() {
   );
 }
 
-function Field({ label, value }: { label: string; value: string | number }) {
+function RiskLabel() {
+  return (
+    <span className="inline-flex items-center">
+      Risk score
+      <RiskHelp />
+    </span>
+  );
+}
+
+function Field({ label, value }: { label: ReactNode; value: ReactNode }) {
   return (
     <div>
       <dt className="text-gray-500">{label}</dt>
       <dd className="font-medium">{value}</dd>
     </div>
   );
+}
+
+function FlagsSummary({ flags }: { flags: Record<string, unknown> }) {
+  const requiresReview = flags.requires_review === true;
+  const reason = typeof flags.reason === "string" && flags.reason.trim() !== "" ? humanize(flags.reason) : null;
+
+  if (!requiresReview && !reason) return <span className="font-normal text-gray-500">No review flags</span>;
+
+  return (
+    <ul className="list-disc space-y-1 pl-4 font-normal">
+      {requiresReview && <li className="font-medium">Requires review</li>}
+      {reason && <li>{reason}</li>}
+    </ul>
+  );
+}
+
+function humanize(value: string): string {
+  const text = value.replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }

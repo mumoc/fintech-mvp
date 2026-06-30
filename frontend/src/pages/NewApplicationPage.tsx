@@ -49,7 +49,7 @@ export function NewApplicationPage() {
       <h1 className="mb-4 text-xl font-bold">New credit application</h1>
       <ErrorBanner error={error} />
 
-      <form onSubmit={onSubmit} className="space-y-4 rounded-lg border bg-white p-6">
+      <form onSubmit={onSubmit} autoComplete="off" className="space-y-4 rounded-lg border bg-white p-6">
         <label className="block text-sm">
           <span className="mb-1 block text-gray-700">Country</span>
           <select
@@ -70,6 +70,7 @@ export function NewApplicationPage() {
           <input
             value={form.full_name}
             onChange={(e) => update("full_name", e.target.value)}
+            autoComplete="off"
             className="w-full rounded border px-3 py-2"
           />
         </label>
@@ -79,6 +80,7 @@ export function NewApplicationPage() {
           <input
             value={form.document_number}
             onChange={(e) => update("document_number", e.target.value)}
+            autoComplete="off"
             placeholder="MX CURP or ES DNI"
             className="w-full rounded border px-3 py-2"
           />
@@ -88,18 +90,24 @@ export function NewApplicationPage() {
           <label className="block flex-1 text-sm">
             <span className="mb-1 block text-gray-700">Amount requested</span>
             <input
-              type="number"
+              type="text"
+              inputMode="decimal"
               value={form.amount_requested}
               onChange={(e) => update("amount_requested", e.target.value)}
+              autoComplete="off"
+              placeholder="100000.00"
               className="w-full rounded border px-3 py-2"
             />
           </label>
           <label className="block flex-1 text-sm">
             <span className="mb-1 block text-gray-700">Monthly income</span>
             <input
-              type="number"
+              type="text"
+              inputMode="decimal"
               value={form.monthly_income}
               onChange={(e) => update("monthly_income", e.target.value)}
+              autoComplete="off"
+              placeholder="25000.00"
               className="w-full rounded border px-3 py-2"
             />
           </label>
