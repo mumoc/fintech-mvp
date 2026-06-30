@@ -1,0 +1,7 @@
+# Recurring schedule loaded by the Sidekiq worker (see config/initializers/sidekiq.rb).
+# The outbox dispatcher runs every minute (cron granularity). For lower latency a
+# dedicated loop or PostgreSQL LISTEN/NOTIFY would replace this — see README.
+outbox_dispatch:
+  cron: "* * * * *"
+  class: "OutboxDispatchJob"
+  queue: "default"

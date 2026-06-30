@@ -32,6 +32,10 @@ gem "pundit", "~> 2.3"
 # State machine for credit-application status (wired per country via the registry).
 gem "aasm", "~> 5.5"
 
+# Background jobs + recurring schedule for the outbox dispatcher.
+gem "sidekiq", "~> 7.2"
+gem "sidekiq-cron", "~> 2.4"
+
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ mswin mswin64 mingw x64_mingw jruby ]
 

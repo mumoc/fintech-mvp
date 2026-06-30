@@ -59,6 +59,28 @@ services:
       retries: 30
       start_period: 90s
 
+  # Sidekiq worker: processes jobs and runs the recurring outbox dispatcher.
+  # Scale horizontally with `docker compose up --scale worker=N` (SKIP LOCKED
+  # keeps parallel dispatchers from double-claiming events).
+  worker:
+    build: .
+    command: bundle exec sidekiq
+    environment:
+      RAILS_ENV: ${RAILS_ENV:-development}
+      DATABASE_HOST: postgres
+      DATABASE_USER: ${DATABASE_USER:-bravo}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-bravo}
+      DATABASE_NAME: ${DATABASE_NAME:-bravo_development}
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - .:/app
+      - bundle_cache:/usr/local/bundle
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
 volumes:
   pg_data:
   redis_data:

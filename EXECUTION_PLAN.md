@@ -132,7 +132,7 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 - **GATE:** spec — a state change inserts exactly one `outbox_event` in the same tx (transaction
   rollback → no event row); an update writes one `audit_log` row with correct diff.
 
-### `[ ]` T011 — Outbox dispatcher (parallel-safe)
+### `[x]` T011 — Outbox dispatcher (parallel-safe)
 - **depends_on:** T010
 - **do:** `OutboxDispatchJob` claims pending events with `SELECT ... FOR UPDATE SKIP LOCKED LIMIT N`,
   enqueues the matching Sidekiq job, marks `processed_at`. Recurring schedule. Designed to run as
@@ -285,6 +285,9 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 - [T010] Postgres pinned to **15-alpine** to match the Debian-bookworm `pg_dump` client (a 16 server broke the `structure.sql` dump with a version mismatch). No feature in use needs 16.
 - [T010] Outbox trigger on `credit_applications` emits **exactly one** event: INSERT → `created`, status-changing UPDATE → `status_changed` (payload = status/country/from/to — never PII). `state_transitions` does not emit (avoids double events). Partial index `(created_at) WHERE processed_at IS NULL` for the dispatcher.
 - [T010] Generic `write_audit_log` trigger on `credit_applications` writes the old/new row image to `audit_logs`; encrypted columns are captured as ciphertext (no plaintext PII).
+- [T011] `Outbox::Dispatcher` claims pending events with `FOR UPDATE SKIP LOCKED` in a transaction, enqueues via `Outbox::Router`, marks processed in the same tx → at-least-once delivery (consumers idempotent). N dispatchers run safely in parallel. `OutboxDispatchJob` (Sidekiq) drains; recurring via `sidekiq-cron` (`config/sidekiq_cron.yml`, every minute — README notes LISTEN/NOTIFY for lower latency).
+- [T011] `Outbox::Router` maps `created`/`status_changed` → `RiskEvaluationJob` (skeleton here; body in T012); `WebhookDeliveryJob` is added in T013. Job names resolved by `constantize` to avoid load-order coupling.
+- [T011] docker-compose `worker` service runs `sidekiq` (scale with `--scale worker=N`). `sidekiq-cron` pinned `>= 2.4` (1.12 had an XSS advisory). Concurrency spec disables transactional fixtures so `SKIP LOCKED` is exercised across real connections.
 
 ## Backlog (out of scope now)
 > Deferred ideas; do not build unless a task references them.
