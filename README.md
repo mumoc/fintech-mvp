@@ -98,29 +98,29 @@ make help         # list all commands
 
 ## API tour
 
-```bash
-TOKEN=$(curl -s localhost:3000/api/v1/login -H 'content-type: application/json' \
-  -d '{"email":"analyst@bravo.test","password":"password123"}' | jq -r .token)
-AUTH="authorization: Bearer $TOKEN"
+The API is namespaced under `/api/v1` and uses JWT bearer authentication except
+for login and inbound webhooks.
 
-# Supported countries (cached catalog)
-curl -s localhost:3000/api/v1/countries -H "$AUTH"
+| Endpoint | Purpose |
+|---|---|
+| `GET /up` | Health check |
+| `POST /api/v1/login` | Authenticate and return a JWT |
+| `GET /api/v1/me` | Return the authenticated user |
+| `GET /api/v1/countries` | Supported country catalog |
+| `POST /api/v1/credit_applications` | Create a credit application |
+| `GET /api/v1/credit_applications` | List applications with country/status filters and pagination |
+| `GET /api/v1/credit_applications/:id` | Show one application, scope-aware and cached |
+| `PATCH /api/v1/credit_applications/:id/status` | Change status with optimistic locking |
+| `POST /api/v1/webhooks/bank` | Inbound HMAC-signed bank confirmation webhook |
 
-# Create an application (MX). document_type is derived from the country.
-curl -s localhost:3000/api/v1/credit_applications -H "$AUTH" -H 'content-type: application/json' \
-  -d '{"credit_application":{"country":"MX","full_name":"Ana","document_number":"HEGG560427MVZRRL04","amount_requested":100000,"monthly_income":25000}}'
+For hands-on usage, import the Postman files in `docs/`:
 
-# List with filters + pagination
-curl -s "localhost:3000/api/v1/credit_applications?country=MX&status=received&per_page=10" -H "$AUTH"
+- Collection: [`docs/Bravo Fintech MVP.postman_collection.json`](docs/Bravo%20Fintech%20MVP.postman_collection.json)
+- Local environment: [`docs/Bravo Fintech MVP Local.postman_environment.json`](docs/Bravo%20Fintech%20MVP%20Local.postman_environment.json)
 
-# Show one (scope-aware, cached)
-curl -s localhost:3000/api/v1/credit_applications/<id> -H "$AUTH"
-
-# Change status (analyst/admin). Optimistic locking via lock_version.
-curl -s -X PATCH localhost:3000/api/v1/credit_applications/<id>/status -H "$AUTH" \
-  -H 'content-type: application/json' \
-  -d '{"credit_application":{"event":"approve","lock_version":0}}'
-```
+Run `make run`, select the local Postman environment, then run `Auth → POST
+/login` first. The collection stores the JWT, created application IDs,
+`lock_version`, and signs inbound webhook requests automatically.
 
 Valid sample documents: MX CURP `HEGG560427MVZRRL04`, ES DNI `12345678Z`, ES
 NIE `X1234567L`.

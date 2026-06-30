@@ -103,7 +103,7 @@ export function ApplicationsPage() {
               {result.data.map((app) => (
                 <tr key={app.id} className="border-b">
                   <td className="py-2">{app.country}</td>
-                  <td className="py-2">{app.document_type}</td>
+                  <td className="py-2">{app.document_number ?? app.document_type}</td>
                   <td className="py-2">{formatMoney(app.amount_requested, app.country)}</td>
                   <td className="py-2">
                     <span className="rounded bg-gray-100 px-2 py-1 text-xs">{app.status}</span>

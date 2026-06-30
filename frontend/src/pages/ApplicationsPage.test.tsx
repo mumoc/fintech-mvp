@@ -12,6 +12,7 @@ function sampleApplication(): Application {
     id: "app-1",
     country: "MX",
     document_type: "CURP",
+    document_number: "HEGG560427MVZRRL04",
     amount_requested: "100000.0",
     status: "received",
     risk_score: 31,
@@ -38,7 +39,7 @@ describe("ApplicationsPage", () => {
     );
 
     expect(await screen.findByRole("columnheader", { name: /amount requested/i })).toBeInTheDocument();
-    expect(await screen.findByText("CURP")).toBeInTheDocument();
+    expect(await screen.findByText("HEGG560427MVZRRL04")).toBeInTheDocument();
     expect(screen.getByText("MX$100,000.00")).toBeInTheDocument();
     expect(screen.getByLabelText(/medium risk, score 31 out of 100/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/lower is better/i)).toBeInTheDocument();

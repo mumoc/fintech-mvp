@@ -1,0 +1,863 @@
+{
+  "info": {
+    "_postman_id": "a0f4a5e6-22ff-4cb4-9a70-271b372fcb78",
+    "name": "Bravo Fintech MVP",
+    "description": "Postman collection for the Bravo Fintech MVP API. Run `make run`, import the local environment, then run Auth > Login before authenticated requests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.test('response has an expected status', function () {",
+          "  pm.expect(pm.response.code).to.be.oneOf([200, 201, 401, 403, 404, 409, 422]);",
+          "});"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /up",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/up",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "up"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('health check is ok', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "POST /login",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{api_base_url}}/login",
+              "host": [
+                "{{api_base_url}}"
+              ],
+              "path": [
+                "login"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('login succeeds', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "pm.environment.set('token', json.token);",
+                  "pm.test('stores bearer token', function () {",
+                  "  pm.expect(pm.environment.get('token')).to.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_base_url}}/me",
+              "host": [
+                "{{api_base_url}}"
+              ],
+              "path": [
+                "me"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Countries",
+      "item": [
+        {
+          "name": "GET /countries",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_base_url}}/countries",
+              "host": [
+                "{{api_base_url}}"
+              ],
+              "path": [
+                "countries"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Credit Applications - Create",
+      "item": [
+        {
+          "name": "POST create MX valid",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"credit_application\": {\n    \"country\": \"MX\",\n    \"full_name\": \"Ana García\",\n    \"document_number\": \"HEGG560427MVZRRL04\",\n    \"amount_requested\": \"100000.00\",\n    \"monthly_income\": \"25000.00\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{api_base_url}}/credit_applications",
+              "host": [
+                "{{api_base_url}}"
+              ],
+              "path": [
+                "credit_applications"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('created', function () { pm.response.to.have.status(201); });",
+                  "const json = pm.response.json();",
+                  "pm.environment.set('application_id', json.id);",
+                  "pm.environment.set('lock_version', json.lock_version);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST create MX requires review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"credit_application\": {\n    \"country\": \"MX\",\n    \"full_name\": \"Luis Martínez\",\n    \"document_number\": \"BADD110313HCMLNS09\",\n    \"amount_requested\": \"2000000.00\",\n    \"monthly_income\": \"25000.00\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{api_base_url}}/credit_applications",
+              "host": [
+                "{{api_base_url}}"
+              ],
+              "path": [
+                "credit_applications"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST create ES DNI valid",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"credit_application\": {\n    \"country\": \"ES\",\n    \"full_name\": \"María López\",\n    \"document_number\": \"12345678Z\",\n    \"amount_requested\": \"40000.00\",\n    \"monthly_income\": \"3200.00\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{api_base_url}}/credit_applications",
+              "host": [
+                "{{api_base_url}}"
+              ],
+              "path": [
+                "credit_applications"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.environment.set('application_id', json.id);",
+                  "  pm.environment.set('lock_version', json.lock_version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST create ES NIE valid",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"credit_application\": {\n    \"country\": \"ES\",\n    \"full_name\": \"Elena Ruiz\",\n    \"document_number\": \"X1234567L\",\n    \"amount_requested\": \"60000.00\",\n    \"monthly_income\": \"4500.00\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{api_base_url}}/credit_applications",
+              "host": [
+                "{{api_base_url}}"
+              ],
+              "path": [
+                "credit_applications"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST invalid document example",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"credit_application\": {\n    \"country\": \"MX\",\n    \"full_name\": \"Invalid Document\",\n    \"document_number\": \"NOT-A-CURP\",\n    \"amount_requested\": \"100000.00\",\n    \"monthly_income\": \"25000.00\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{api_base_url}}/credit_applications",
+              "host": [
+                "{{api_base_url}}"
+              ],
+              "path": [
+                "credit_applications"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST unsupported country example",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"credit_application\": {\n    \"country\": \"ZZ\",\n    \"full_name\": \"Unsupported Country\",\n    \"document_number\": \"12345678Z\",\n    \"amount_requested\": \"100000.00\",\n    \"monthly_income\": \"25000.00\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{api_base_url}}/credit_applications",
+              "host": [
+                "{{api_base_url}}"
+              ],
+              "path": [
+                "credit_applications"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Credit Applications - List and Show",
+      "item": [
+        {
+          "name": "GET list all",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_base_url}}/credit_applications",
+              "host": [
+                "{{api_base_url}}"
+              ],
+              "path": [
+                "credit_applications"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.length > 0) {",
+                  "  pm.environment.set('application_id', json.data[0].id);",
+                  "  pm.environment.set('lock_version', json.data[0].lock_version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET filter by country",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_base_url}}/credit_applications?country=MX",
+              "host": [
+                "{{api_base_url}}"
+              ],
+              "path": [
+                "credit_applications"
+              ],
+              "query": [
+                {
+                  "key": "country",
+                  "value": "MX"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET filter by status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_base_url}}/credit_applications?status=received",
+              "host": [
+                "{{api_base_url}}"
+              ],
+              "path": [
+                "credit_applications"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "received"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET filter by country + status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_base_url}}/credit_applications?country=MX&status=received",
+              "host": [
+                "{{api_base_url}}"
+              ],
+              "path": [
+                "credit_applications"
+              ],
+              "query": [
+                {
+                  "key": "country",
+                  "value": "MX"
+                },
+                {
+                  "key": "status",
+                  "value": "received"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET pagination",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_base_url}}/credit_applications?page=1&per_page=2",
+              "host": [
+                "{{api_base_url}}"
+              ],
+              "path": [
+                "credit_applications"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "2"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET show by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_base_url}}/credit_applications/{{application_id}}",
+              "host": [
+                "{{api_base_url}}"
+              ],
+              "path": [
+                "credit_applications",
+                "{{application_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  pm.environment.set('application_id', json.id);",
+                  "  pm.environment.set('lock_version', json.lock_version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Credit Applications - Status Updates",
+      "item": [
+        {
+          "name": "POST create fresh app for status transitions",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"credit_application\": {\n    \"country\": \"ES\",\n    \"full_name\": \"Status Flow\",\n    \"document_number\": \"12345678Z\",\n    \"amount_requested\": \"15000.00\",\n    \"monthly_income\": \"3500.00\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{api_base_url}}/credit_applications",
+              "host": [
+                "{{api_base_url}}"
+              ],
+              "path": [
+                "credit_applications"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.environment.set('application_id', json.id);",
+                  "pm.environment.set('lock_version', json.lock_version);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH start review",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"credit_application\": {\n    \"event\": \"start_review\",\n    \"lock_version\": {{lock_version}},\n    \"reason\": \"manual review requested\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{api_base_url}}/credit_applications/{{application_id}}/status",
+              "host": [
+                "{{api_base_url}}"
+              ],
+              "path": [
+                "credit_applications",
+                "{{application_id}}",
+                "status"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) pm.environment.set('lock_version', pm.response.json().lock_version);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH approve",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"credit_application\": {\n    \"event\": \"approve\",\n    \"lock_version\": {{lock_version}},\n    \"reason\": \"manual review complete\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{api_base_url}}/credit_applications/{{application_id}}/status",
+              "host": [
+                "{{api_base_url}}"
+              ],
+              "path": [
+                "credit_applications",
+                "{{application_id}}",
+                "status"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) pm.environment.set('lock_version', pm.response.json().lock_version);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH reject example",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"credit_application\": {\n    \"event\": \"reject\",\n    \"lock_version\": {{lock_version}},\n    \"reason\": \"manual rejection\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{api_base_url}}/credit_applications/{{application_id}}/status",
+              "host": [
+                "{{api_base_url}}"
+              ],
+              "path": [
+                "credit_applications",
+                "{{application_id}}",
+                "status"
+              ]
+            },
+            "description": "Run this on an application in received or under_review. If you already ran approve, this demonstrates an invalid transition."
+          }
+        },
+        {
+          "name": "PATCH cancel example",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"credit_application\": {\n    \"event\": \"cancel\",\n    \"lock_version\": {{lock_version}},\n    \"reason\": \"customer cancelled\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{api_base_url}}/credit_applications/{{application_id}}/status",
+              "host": [
+                "{{api_base_url}}"
+              ],
+              "path": [
+                "credit_applications",
+                "{{application_id}}",
+                "status"
+              ]
+            },
+            "description": "Run this on an application in received or under_review. Terminal states reject further transitions."
+          }
+        },
+        {
+          "name": "PATCH invalid transition example",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"credit_application\": {\n    \"event\": \"start_review\",\n    \"lock_version\": {{lock_version}},\n    \"reason\": \"invalid from terminal state\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{api_base_url}}/credit_applications/{{application_id}}/status",
+              "host": [
+                "{{api_base_url}}"
+              ],
+              "path": [
+                "credit_applications",
+                "{{application_id}}",
+                "status"
+              ]
+            },
+            "description": "Useful after approving/rejecting/cancelling the selected application. Expected response: 422 invalid_transition."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Webhooks",
+      "item": [
+        {
+          "name": "POST inbound bank confirmation",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Webhook-Signature",
+                "value": ""
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotency_key\": \"{{webhook_idempotency_key}}\",\n  \"application_id\": \"{{application_id}}\",\n  \"event\": \"bank_confirmation\"\n}"
+            },
+            "url": {
+              "raw": "{{api_base_url}}/webhooks/bank",
+              "host": [
+                "{{api_base_url}}"
+              ],
+              "path": [
+                "webhooks",
+                "bank"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('webhook_idempotency_key', `postman-bank-${Date.now()}`);",
+                  "const rawBody = pm.variables.replaceIn(pm.request.body.raw);",
+                  "const secret = pm.environment.get('webhook_secret');",
+                  "const signature = CryptoJS.HmacSHA256(rawBody, secret).toString(CryptoJS.enc.Hex);",
+                  "pm.request.headers.upsert({ key: 'X-Webhook-Signature', value: signature });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('webhook accepted', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST inbound bank confirmation replay",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Webhook-Signature",
+                "value": ""
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotency_key\": \"{{webhook_idempotency_key}}\",\n  \"application_id\": \"{{application_id}}\",\n  \"event\": \"bank_confirmation\"\n}"
+            },
+            "url": {
+              "raw": "{{api_base_url}}/webhooks/bank",
+              "host": [
+                "{{api_base_url}}"
+              ],
+              "path": [
+                "webhooks",
+                "bank"
+              ]
+            },
+            "description": "Run immediately after the valid inbound bank confirmation. It uses the same idempotency key and should return 200 without applying the mutation twice."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const rawBody = pm.variables.replaceIn(pm.request.body.raw);",
+                  "const secret = pm.environment.get('webhook_secret');",
+                  "const signature = CryptoJS.HmacSHA256(rawBody, secret).toString(CryptoJS.enc.Hex);",
+                  "pm.request.headers.upsert({ key: 'X-Webhook-Signature', value: signature });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST inbound webhook invalid signature",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Webhook-Signature",
+                "value": "wrong-signature"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotency_key\": \"postman-invalid-signature\",\n  \"application_id\": \"{{application_id}}\",\n  \"event\": \"bank_confirmation\"\n}"
+            },
+            "url": {
+              "raw": "{{api_base_url}}/webhooks/bank",
+              "host": [
+                "{{api_base_url}}"
+              ],
+              "path": [
+                "webhooks",
+                "bank"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('invalid signature is rejected', function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
