@@ -186,7 +186,7 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 - **GATE:** app builds; list renders from API; submitting an invalid document shows the `422` message;
   minimal component tests pass.
 
-### `[ ]` T017 — Realtime (ActionCable)
+### `[x]` T017 — Realtime (ActionCable)
 - **depends_on:** T016, T011
 - **do:** Broadcast on create + state change. `ApplicationsChannel`. Client subscribes; list/detail
   update without refresh.
@@ -296,6 +296,7 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 - [T014] Pinned `connection_pool ~> 2.4` (resolved 2.5.5): `connection_pool 3.0` changed its constructor and broke `RedisCacheStore` at boot. Test (`memory_store`) didn't catch it — the live dev smoke did.
 - [M2 checkpoint] `db/seeds.rb` added (idempotent): one user per role (`*@bravo.test`, password `password123`) + 4 sample apps (MX/ES × received/under_review) created via the real pipeline. Added `has_many :webhook_deliveries, dependent: :destroy` so deliveries cascade on destroy. README expanded: mermaid architecture, <5-min setup, API tour, Technical decisions/Security/Concurrency/Caching/Webhooks. Tagged `m2-complete`. (T019 still owns the Makefile `deploy` target + final seed polish.)
 - [T016] Frontend = React + Tailwind + Vite + Vitest in `frontend/` (TypeScript). Pages: login, list (country/status filters + pagination), create (surfaces 422 validation messages), detail with state-machine status transitions (sends `lock_version`, handles 409 by reloading). `ApiError` normalizes `{error, messages}` so failures are shown explicitly. Auth = JWT in localStorage. Component tests: list renders from a mocked API; invalid document shows the 422 message.
+- [T017] Realtime via ActionCable. `ApplicationsChannel` (one shared stream `applications`); `ApplicationCable::Connection` authenticates the JWT from the `?token=` query param (browsers can't set WS headers). `Applications::Broadcaster` broadcasts the **redacted (non-PII)** view on create + status change (called from the controller). Cable adapter = redis in dev/prod (cross-process), test adapter in test; `allowed_request_origins` = `FRONTEND_ORIGINS`. Frontend `src/api/cable.ts` (`@rails/actioncable`) → list refetches on any event, detail reloads on a matching id. Live e2e: API status change → broadcast received in ~120ms, no PII.
 - [T016] API changes for the SPA: enabled `rack-cors` (origins via `FRONTEND_ORIGINS`, default `http://localhost:5173`) and added `lock_version` to the serializer (non-PII; the UI needs it for optimistic-locked status changes). docker-compose `frontend` service (node:20, Vite dev server on 5173, node_modules in a named volume, no healthcheck so it doesn't gate `make up`). `make web-test` / `make web-build`.
 - [T015] **Signature proven.** Added España with only `app/countries/es/` (DNI mod-23 validator, different bank shape + normalizer, €50,000 review-threshold state machine) + ONE line in `Registry::NAMESPACES`. **1** file changed outside `app/countries/es/` (the registry); MX suite stayed green. The evidence is expandability/isolation (a third country is purely additive), not implementation time. ES threshold = €50,000; MX ratio limit = 30×.
 

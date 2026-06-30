@@ -9,8 +9,9 @@ that adding a third country is configuration, not code.
 
 **Status:** backend and a React + Tailwind frontend are complete and tested —
 authenticated sync CRUD, two countries, the async pipeline (transactional outbox
-→ dispatcher → Sidekiq → webhooks), and a UI for create / list / detail / status.
-Realtime (ActionCable) and Kubernetes manifests are the remaining milestone.
+→ dispatcher → Sidekiq → webhooks), a UI for create / list / detail / status, and
+realtime updates over ActionCable. Kubernetes manifests and the scalability
+deep-dive are the remaining milestone.
 
 ## Stack
 
@@ -277,8 +278,13 @@ transitions (optimistic-lock aware). The API client normalizes errors
 conflicts are shown explicitly. Component tests run with Vitest + Testing Library
 (`make web-test`).
 
+**Realtime:** the list and detail views subscribe to `ApplicationsChannel` over
+ActionCable. When an application is created or its status changes (by anyone),
+subscribers update within ~1s with no reload. Broadcasts carry only the non-PII
+view, so a single shared stream is safe for every role.
+
 ## What's next
 
-Realtime via ActionCable (live list/detail updates), Kubernetes manifests, and
-the scalability deep-dive (partitioning by `LIST(country)` + `RANGE(created_at)`,
-archival of terminal partitions). See `EXECUTION_PLAN.md`.
+Kubernetes manifests for all components, and the scalability deep-dive
+(partitioning by `LIST(country)` + `RANGE(created_at)`, archival of terminal
+partitions). See `EXECUTION_PLAN.md`.

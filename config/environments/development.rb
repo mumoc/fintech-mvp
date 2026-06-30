@@ -63,6 +63,9 @@ Rails.application.configure do
   # Raise error when a before_action's only/except options reference missing actions
   config.action_controller.raise_on_missing_callback_actions = true
 
+  # Allow the SPA to open the ActionCable WebSocket cross-origin.
+  config.action_cable.allowed_request_origins = ENV.fetch("FRONTEND_ORIGINS", "http://localhost:5173").split(",")
+
   # N+1 detection in development — log offenders rather than raise.
   config.after_initialize do
     Bullet.enable = true

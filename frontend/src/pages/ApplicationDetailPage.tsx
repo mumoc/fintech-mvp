@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getApplication, updateStatus } from "../api/applications";
+import { subscribeToApplications } from "../api/cable";
 import type { Application } from "../api/types";
 import { ApiError } from "../api/client";
 import { ErrorBanner } from "../components/ErrorBanner";
@@ -28,6 +29,16 @@ export function ApplicationDetailPage() {
   }, [id]);
 
   useEffect(load, [load]);
+
+  // Realtime: reload this application when it changes elsewhere (re-fetches the
+  // role-appropriate view, including PII for authorized users).
+  useEffect(
+    () =>
+      subscribeToApplications((event) => {
+        if (event.application.id === id) load();
+      }),
+    [id, load],
+  );
 
   async function fire(event: string) {
     if (!app) return;

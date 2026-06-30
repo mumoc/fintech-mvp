@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { listApplications } from "../api/applications";
+import { subscribeToApplications } from "../api/cable";
 import type { Application, Page } from "../api/types";
 import { ApiError } from "../api/client";
 import { ErrorBanner } from "../components/ErrorBanner";
@@ -14,6 +15,7 @@ export function ApplicationsPage() {
   const [result, setResult] = useState<Page<Application> | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [loading, setLoading] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -26,7 +28,10 @@ export function ApplicationsPage() {
     return () => {
       active = false;
     };
-  }, [country, status, page]);
+  }, [country, status, page, reloadKey]);
+
+  // Realtime: refetch the current page when an application is created/changed.
+  useEffect(() => subscribeToApplications(() => setReloadKey((k) => k + 1)), []);
 
   return (
     <div>

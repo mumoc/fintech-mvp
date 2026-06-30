@@ -63,6 +63,10 @@ Rails.application.configure do
     namespace: "bravo:cache"
   }
 
+  # ActionCable: allow only the configured frontend origin(s).
+  config.action_cable.allowed_request_origins =
+    ENV.fetch("FRONTEND_ORIGINS", "https://app.bravo.example").split(",")
+
   # Use a real queuing backend for Active Job (and separate queues per environment).
   # config.active_job.queue_adapter = :resque
   # config.active_job.queue_name_prefix = "bravo_production"

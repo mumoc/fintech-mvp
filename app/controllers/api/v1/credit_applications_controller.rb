@@ -38,6 +38,7 @@ module Api
         result = Applications::CreateApplication.call!(params: create_params, actor: current_user)
 
         if result.success?
+          Applications::Broadcaster.application_changed(result.value, event: "created")
           render json: serialize(result.value), status: :created
         else
           render json: { error: result.error.code, messages: result.error.messages },
@@ -59,6 +60,7 @@ module Api
         )
 
         if result.success?
+          Applications::Broadcaster.application_changed(result.value, event: "status_changed")
           render json: serialize(result.value), status: :ok
         else
           render json: { error: result.error.code, messages: result.error.messages },

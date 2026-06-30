@@ -14,10 +14,12 @@ class CreditApplicationSerializer
     base
   end
 
-  private
+  # Non-PII view, safe to broadcast to every subscriber regardless of role.
+  def self.redacted(application)
+    new(application, user: nil).public_attributes
+  end
 
-  attr_reader :application, :user
-
+  # Public, non-PII attributes (always present in the serialized output).
   def public_attributes
     {
       id: application.id,
@@ -34,6 +36,10 @@ class CreditApplicationSerializer
       bank_record: bank_record_summary
     }
   end
+
+  private
+
+  attr_reader :application, :user
 
   # Normalized bank summary (not PII). nil until bank data has been fetched.
   def bank_record_summary

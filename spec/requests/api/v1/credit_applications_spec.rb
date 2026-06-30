@@ -161,6 +161,13 @@ RSpec.describe "Api::V1::CreditApplications", type: :request do
       expect(application.reload.status).to eq("approved")
     end
 
+    it "broadcasts the change over ActionCable" do
+      application = create(:credit_application, status: "received")
+
+      expect { patch_status(application, { event: "approve", lock_version: application.lock_version }) }
+        .to have_broadcasted_to("applications")
+    end
+
     it "returns 409 on a stale lock_version" do
       application = create(:credit_application, status: "received")
       CreditApplication.find(application.id).update!(risk_score: 1) # bump lock_version
