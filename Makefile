@@ -36,6 +36,11 @@ web-build: ## Build the frontend (tsc + vite)
 web-test: ## Run the frontend component tests
 	$(COMPOSE) run --rm frontend sh -c "npm install --no-fund --no-audit && npm test"
 
+k8s-validate: ## Validate the Kubernetes manifests (schema check; no cluster needed)
+	docker run --rm -v "$$(pwd)/k8s":/k8s ghcr.io/yannh/kubeconform:latest \
+		-strict -summary -kubernetes-version 1.30.0 /k8s/
+	@echo "In a cluster you can also run: kubectl apply --dry-run=client -f k8s/"
+
 console: ## Open a Rails console
 	$(COMPOSE) run --rm api ./bin/rails console
 

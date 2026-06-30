@@ -1,0 +1,43 @@
+# Sidekiq worker: processes RiskEvaluationJob, WebhookDeliveryJob, etc.
+# Scale horizontally by raising replicas — jobs are idempotent.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker
+  namespace: bravo
+  labels:
+    app.kubernetes.io/name: worker
+    app.kubernetes.io/component: jobs
+    app.kubernetes.io/part-of: bravo-fintech
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: worker
+        app.kubernetes.io/component: jobs
+    spec:
+      containers:
+        - name: worker
+          image: bravo/fintech-api:latest
+          command: ["bundle", "exec", "sidekiq"]
+          envFrom:
+            - configMapRef:
+                name: bravo-config
+            - secretRef:
+                name: bravo-secrets
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "pgrep -f sidekiq"]
+            initialDelaySeconds: 20
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "1Gi"

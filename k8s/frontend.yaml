@@ -1,0 +1,54 @@
+# Built React SPA served as static files (e.g. nginx). The API base URL is baked
+# in at build time (VITE_API_BASE_URL / VITE_CABLE_URL), so no runtime env here.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: bravo
+  labels:
+    app.kubernetes.io/name: frontend
+    app.kubernetes.io/component: web-ui
+    app.kubernetes.io/part-of: bravo-fintech
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: frontend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: frontend
+        app.kubernetes.io/component: web-ui
+    spec:
+      containers:
+        - name: frontend
+          image: bravo/fintech-web:latest
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "128Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: bravo
+  labels:
+    app.kubernetes.io/name: frontend
+spec:
+  selector:
+    app.kubernetes.io/name: frontend
+  ports:
+    - port: 80
+      targetPort: 80
