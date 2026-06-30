@@ -7,15 +7,15 @@ that adding a third country is configuration, not code.
 > Architectural signature: *"The first implementation defines the architecture; the
 > second is configuration, not code."*
 
-**Status:** backend complete and fully tested — authenticated sync CRUD, two
-countries, and the async pipeline (transactional outbox → dispatcher → Sidekiq →
-webhooks). Frontend, realtime (ActionCable), and Kubernetes manifests are the
-remaining milestone.
+**Status:** backend and a React + Tailwind frontend are complete and tested —
+authenticated sync CRUD, two countries, the async pipeline (transactional outbox
+→ dispatcher → Sidekiq → webhooks), and a UI for create / list / detail / status.
+Realtime (ActionCable) and Kubernetes manifests are the remaining milestone.
 
 ## Stack
 
 Rails 7.2 (API-only) · PostgreSQL 15 · Sidekiq + Redis · JWT · Pundit · AASM ·
-Docker Compose · RSpec · RuboCop · React + Tailwind (upcoming) · Kubernetes
+React + Tailwind + Vite + Vitest · Docker Compose · RSpec · RuboCop · Kubernetes
 (upcoming).
 
 ## Architecture
@@ -57,7 +57,9 @@ make up      # build image, boot api + postgres + redis + worker, load schema
 make seed    # users per role + sample MX/ES applications
 ```
 
-`make up` waits until the API is healthy. Verify and log in:
+`make up` waits until the API is healthy and boots the SPA. Open the UI at
+**http://localhost:5173** (sign in with a seeded user below). Or use the API
+directly — verify and log in:
 
 ```bash
 curl localhost:3000/up                       # => 200
@@ -77,6 +79,8 @@ Everything else:
 make test     # full RSpec suite
 make lint     # RuboCop + bundler-audit
 make console  # Rails console
+make web-test # frontend component tests (Vitest)
+make web-build# frontend production build
 make logs     # tail api logs
 make down     # stop everything
 make help     # list all commands
@@ -263,9 +267,18 @@ algorithms, normalizers), the create/read/list/status request flows, the outbox
 trigger + parallel dispatcher (real-thread `SKIP LOCKED` test), the idempotent
 risk job, and both webhook directions.
 
+## Frontend
+
+A React + Tailwind SPA (Vite) lives in `frontend/`, served at
+`http://localhost:5173`. Views: sign in, list (with country/status filters +
+pagination), create (with surfaced validation errors), and detail with status
+transitions (optimistic-lock aware). The API client normalizes errors
+(`ApiError` with `code` + `messages`) so 422 validation messages and 409
+conflicts are shown explicitly. Component tests run with Vitest + Testing Library
+(`make web-test`).
+
 ## What's next
 
-Frontend (React + Tailwind: create / list / detail / status), realtime via
-ActionCable, Kubernetes manifests, and the scalability deep-dive (partitioning by
-`LIST(country)` + `RANGE(created_at)`, archival of terminal partitions). See
-`EXECUTION_PLAN.md`.
+Realtime via ActionCable (live list/detail updates), Kubernetes manifests, and
+the scalability deep-dive (partitioning by `LIST(country)` + `RANGE(created_at)`,
+archival of terminal partitions). See `EXECUTION_PLAN.md`.

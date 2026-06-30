@@ -30,6 +30,12 @@ test: ## Run the full test suite (RSpec)
 lint: ## Run static analysis (RuboCop + bundler-audit)
 	$(COMPOSE) run --rm api bash -c "bundle exec rubocop && bundle exec bundle-audit check --update"
 
+web-build: ## Build the frontend (tsc + vite)
+	$(COMPOSE) run --rm frontend sh -c "npm install --no-fund --no-audit && npm run build"
+
+web-test: ## Run the frontend component tests
+	$(COMPOSE) run --rm frontend sh -c "npm install --no-fund --no-audit && npm test"
+
 console: ## Open a Rails console
 	$(COMPOSE) run --rm api ./bin/rails console
 

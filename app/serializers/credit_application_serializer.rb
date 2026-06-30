@@ -27,6 +27,7 @@ class CreditApplicationSerializer
       status: application.status,
       risk_score: application.risk_score,
       flags: application.flags,
+      lock_version: application.lock_version,
       requested_at: application.requested_at,
       created_at: application.created_at,
       updated_at: application.updated_at,
