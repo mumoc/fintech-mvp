@@ -49,7 +49,7 @@ module Applications
       CreditApplication.new(
         country: country_code,
         full_name: params[:full_name],
-        document_type: country.validator::DOCUMENT_TYPE,
+        document_type: country.validator.document_type(params[:document_number]),
         document_number: params[:document_number],
         amount_requested: params[:amount_requested],
         monthly_income: params[:monthly_income],

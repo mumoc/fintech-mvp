@@ -24,6 +24,14 @@ RSpec.describe "ES via the existing pipeline", type: :request do
     expect(application.bank_record.account_status).to be_in(%w[active delinquent unknown])
   end
 
+  it "accepts a NIE (foreigner ID) and records document_type NIE" do
+    create_es(document_number: "Z8701355T")
+
+    expect(response).to have_http_status(:created)
+    application = CreditApplication.find(response.parsed_body["id"])
+    expect(application.document_type).to eq("NIE")
+  end
+
   it "rejects an invalid DNI with 422" do
     create_es(document_number: "12345678A")
 
