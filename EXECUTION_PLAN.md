@@ -147,7 +147,7 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 - **GATE:** spec — running the job twice for the same id yields a single effect; logs contain required
   keys and **no PII**.
 
-### `[ ]` T013 — Webhooks (inbound + outbound)
+### `[x]` T013 — Webhooks (inbound + outbound)
 - **depends_on:** T011
 - **do:** Outbound: `WebhookDeliveryJob` POSTs to a simulated external endpoint on state change, HMAC
   signed, Sidekiq retries, records `webhook_deliveries`. Inbound: `WebhooksController#bank` verifies
@@ -290,6 +290,8 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 - [T011] docker-compose `worker` service runs `sidekiq` (scale with `--scale worker=N`). `sidekiq-cron` pinned `>= 2.4` (1.12 had an XSS advisory). Concurrency spec disables transactional fixtures so `SKIP LOCKED` is exercised across real connections.
 - [T012] `StructuredLogger` (`lib/structured_logger.rb`) emits one JSON line per event with `event`/`country`/`application_id`; strips PII keys (`document_number`/`monthly_income`/`full_name`) from the extra payload defensively.
 - [T012] `RiskEvaluationJob` is idempotent via a conditional `UPDATE ... WHERE risk_score IS NULL` (single effect under retries/concurrency). Writing `risk_score` does not change `status`, so it never re-triggers the outbox (no loop). Score = bureau-credit + leverage heuristic, clamped 0..100.
+- [T013] Webhooks signed with HMAC-SHA256 (`WebhookSignature`, `ENV[WEBHOOK_SIGNING_SECRET]`). Outbound `WebhookDeliveryJob` (routed from `status_changed`) POSTs to `WEBHOOK_ENDPOINT_URL` (simulated; default example.com), records every attempt in `webhook_deliveries`, and raises on non-2xx/network error so Sidekiq retries. HTTP via `Webhooks::Client` (Net::HTTP, stubbable).
+- [T013] Inbound `POST /api/v1/webhooks/bank` (JWT-skipped, HMAC-verified over the raw body). `Webhooks::ProcessBankConfirmation` dedupes by `idempotency_key` (pre-check + unique index + race rescue) and applies the confirmation (`flags.bank_confirmed`) exactly once in a transaction. Replay → 200 no-op; bad signature → 401.
 
 ## Backlog (out of scope now)
 > Deferred ideas; do not build unless a task references them.

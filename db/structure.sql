@@ -214,6 +214,37 @@ CREATE TABLE public.users (
 
 
 --
+-- Name: webhook_deliveries; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.webhook_deliveries (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    credit_application_id uuid NOT NULL,
+    endpoint character varying NOT NULL,
+    status character varying DEFAULT 'pending'::character varying NOT NULL,
+    attempts integer DEFAULT 0 NOT NULL,
+    last_response jsonb,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: webhook_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.webhook_events (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    idempotency_key character varying NOT NULL,
+    source character varying NOT NULL,
+    payload jsonb DEFAULT '{}'::jsonb NOT NULL,
+    processed_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
 -- Name: ar_internal_metadata ar_internal_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -275,6 +306,22 @@ ALTER TABLE ONLY public.state_transitions
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: webhook_deliveries webhook_deliveries_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.webhook_deliveries
+    ADD CONSTRAINT webhook_deliveries_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: webhook_events webhook_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.webhook_events
+    ADD CONSTRAINT webhook_events_pkey PRIMARY KEY (id);
 
 
 --
@@ -348,6 +395,20 @@ CREATE UNIQUE INDEX index_users_on_email ON public.users USING btree (email);
 
 
 --
+-- Name: index_webhook_deliveries_on_credit_application_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_webhook_deliveries_on_credit_application_id ON public.webhook_deliveries USING btree (credit_application_id);
+
+
+--
+-- Name: index_webhook_events_on_idempotency_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_webhook_events_on_idempotency_key ON public.webhook_events USING btree (idempotency_key);
+
+
+--
 -- Name: credit_applications credit_applications_audit; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -359,6 +420,14 @@ CREATE TRIGGER credit_applications_audit AFTER INSERT OR DELETE OR UPDATE ON pub
 --
 
 CREATE TRIGGER credit_applications_outbox AFTER INSERT OR UPDATE ON public.credit_applications FOR EACH ROW EXECUTE FUNCTION public.enqueue_outbox_event('CreditApplication');
+
+
+--
+-- Name: webhook_deliveries fk_rails_450596b634; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.webhook_deliveries
+    ADD CONSTRAINT fk_rails_450596b634 FOREIGN KEY (credit_application_id) REFERENCES public.credit_applications(id);
 
 
 --
@@ -392,6 +461,7 @@ ALTER TABLE ONLY public.bank_records
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260630120002'),
 ('20260630120001'),
 ('20260629120005'),
 ('20260629120004'),

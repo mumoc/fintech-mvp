@@ -15,6 +15,8 @@ Rails.application.routes.draw do
           patch :status, action: :update_status
         end
       end
+
+      post "webhooks/bank", to: "webhooks#bank"
     end
   end
 end

@@ -6,8 +6,7 @@ module Outbox
   class Router
     ROUTES = {
       "created" => %w[RiskEvaluationJob],
-      "status_changed" => %w[RiskEvaluationJob]
-      # WebhookDeliveryJob is added here in T013.
+      "status_changed" => %w[RiskEvaluationJob WebhookDeliveryJob]
     }.freeze
 
     def self.dispatch(event)
