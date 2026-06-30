@@ -45,7 +45,36 @@ module Api
         end
       end
 
+      # PATCH /api/v1/credit_applications/:id/status
+      def update_status
+        application = policy_scope(CreditApplication).find(params[:id])
+        authorize application, :update_status?
+
+        result = Applications::UpdateStatus.call!(
+          application: application,
+          event: status_params[:event],
+          actor: current_user,
+          reason: status_params[:reason],
+          expected_lock_version: status_params[:lock_version]
+        )
+
+        if result.success?
+          render json: serialize(result.value), status: :ok
+        else
+          render json: { error: result.error.code, messages: result.error.messages },
+                 status: status_for(result.error.code)
+        end
+      end
+
       private
+
+      def status_params
+        params.require(:credit_application).permit(:event, :reason, :lock_version)
+      end
+
+      def status_for(code)
+        code == :conflict ? :conflict : :unprocessable_content
+      end
 
       def create_params
         params.require(:credit_application).permit(

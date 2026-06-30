@@ -117,7 +117,7 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 
 # MILESTONE M2 — Async, state machine, second country  *(Day 2)*
 
-### `[ ]` T009 — State machine + status update
+### `[x]` T009 — State machine + status update
 - **depends_on:** T008
 - **do:** AASM state machine (MX) wired via registry. `Applications::UpdateStatus`. Record every
   transition in `state_transitions`. Optimistic locking via `lock_version`.
@@ -278,6 +278,9 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 - [T007] All create domain failures → HTTP 422 (`unsupported_country` / `invalid_document` / `validation_error` / `duplicate_document`). Use Rack 3.2 symbol `:unprocessable_content`.
 - [T008] Listing via `Applications::Search` query object: filters `country`/`status`/`created_at` range (`from`/`to`), eager-loads `bank_record` (no N+1, Bullet-enforced), orders by `created_at desc`, offset pagination (default per_page 25, max 100) with `meta{page,per_page,total,total_pages}`; runs on `policy_scope`.
 - [T008] Serializer now includes a non-PII `bank_record` summary (provider/total_debt/credit_score/account_status). `show` eager-loads `bank_record`; `ActiveRecord::RecordNotFound → 404`.
+- [T009] AASM lives in `Countries::Base::StateMachine` (a PORO wrapping the application), inherited by each country — keeps the model free of state/country logic. AASM persistence hooks (`aasm_read_state`/`aasm_write_state`) make the wrapped application's `status` the source of truth. Shared transition graph: received → under_review/approved/rejected/cancelled; under_review → approved/rejected/cancelled. A country can override the graph; MX uses the shared one.
+- [T009] `Applications::UpdateStatus`: validates via `may_<event>?`, fires the event, records a `state_transition`, persists in a transaction. Unknown/guard-blocked event → `:invalid_transition` (422, state unchanged). Optimistic locking: the client's `lock_version` is assigned to the loaded record before save; mismatch → `ActiveRecord::StaleObjectError` → `:conflict` (409). The transition-validity check runs before the lock check.
+- [T009] `PATCH /api/v1/credit_applications/:id/status` (Pundit `update_status?` = analyst/admin; operator → 403). Body: `{credit_application:{event, lock_version, reason}}`.
 
 ## Backlog (out of scope now)
 > Deferred ideas; do not build unless a task references them.

@@ -120,4 +120,52 @@ RSpec.describe "Api::V1::CreditApplications", type: :request do
       expect(response.parsed_body["data"].first["bank_record"]).to be_present
     end
   end
+
+  describe "PATCH /api/v1/credit_applications/:id/status" do
+    let(:analyst) { create(:user, role: :analyst) }
+
+    def patch_status(application, attrs, user: analyst)
+      patch "/api/v1/credit_applications/#{application.id}/status",
+            params: { credit_application: attrs },
+            headers: auth_headers(user),
+            as: :json
+    end
+
+    it "performs a valid transition (200) and records it" do
+      application = create(:credit_application, status: "received")
+
+      expect { patch_status(application, { event: "approve", lock_version: application.lock_version }) }
+        .to change(StateTransition, :count).by(1)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["status"]).to eq("approved")
+    end
+
+    it "returns 422 for an invalid transition and leaves state unchanged" do
+      application = create(:credit_application, status: "approved")
+
+      patch_status(application, { event: "start_review", lock_version: application.lock_version })
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body["error"]).to eq("invalid_transition")
+      expect(application.reload.status).to eq("approved")
+    end
+
+    it "returns 409 on a stale lock_version" do
+      application = create(:credit_application, status: "received")
+      CreditApplication.find(application.id).update!(risk_score: 1) # bump lock_version
+
+      patch_status(application, { event: "approve", lock_version: 0 })
+
+      expect(response).to have_http_status(:conflict)
+    end
+
+    it "forbids an operator from changing status (403)" do
+      application = create(:credit_application, status: "received")
+
+      patch_status(application, { event: "approve", lock_version: application.lock_version }, user: operator)
+
+      expect(response).to have_http_status(:forbidden)
+    end
+  end
 end

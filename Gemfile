@@ -29,6 +29,9 @@ gem "jwt", "~> 2.8"
 # Role-based authorization policies.
 gem "pundit", "~> 2.3"
 
+# State machine for credit-application status (wired per country via the registry).
+gem "aasm", "~> 5.5"
+
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ mswin mswin64 mingw x64_mingw jruby ]
 

@@ -58,7 +58,7 @@ module Applications
     end
 
     def apply_intake_decision(application)
-      decision = country.state_machine.new.intake(application)
+      decision = country.state_machine.new(application).intake
       application.status = decision.status
       application.flags = decision.flags
     end
