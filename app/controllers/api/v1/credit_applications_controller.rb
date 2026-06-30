@@ -28,7 +28,7 @@ module Api
         application = policy_scope(CreditApplication).includes(:bank_record).find(params[:id])
         authorize application
 
-        render json: serialize(application), status: :ok
+        render json: Applications::CachedView.fetch(application, user: current_user), status: :ok
       end
 
       # POST /api/v1/credit_applications

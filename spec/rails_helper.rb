@@ -66,6 +66,9 @@ RSpec.configure do |config|
   # FactoryBot short syntax (build/create instead of FactoryBot.build/create).
   config.include FactoryBot::Syntax::Methods
 
+  # Isolate the cache between examples.
+  config.before { Rails.cache.clear }
+
   # Wrap each example so Bullet can detect N+1 queries. Bullet is configured to
   # raise in the test environment (see config/environments/test.rb), so any N+1
   # introduced by a spec fails the suite.

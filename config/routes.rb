@@ -17,6 +17,8 @@ Rails.application.routes.draw do
       end
 
       post "webhooks/bank", to: "webhooks#bank"
+
+      resources :countries, only: [ :index ]
     end
   end
 end

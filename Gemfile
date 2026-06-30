@@ -36,6 +36,12 @@ gem "aasm", "~> 5.5"
 gem "sidekiq", "~> 7.2"
 gem "sidekiq-cron", "~> 2.4"
 
+# Redis-backed Rails.cache (single-application reads + country config).
+gem "redis", "~> 5.0"
+# Rails' RedisCacheStore uses the connection_pool 2.x constructor API; 3.0
+# changed it (ArgumentError on boot). Pin to 2.x (also satisfies Sidekiq).
+gem "connection_pool", "~> 2.4"
+
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ mswin mswin64 mingw x64_mingw jruby ]
 

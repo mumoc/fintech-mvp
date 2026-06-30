@@ -155,7 +155,7 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 - **GATE:** outbound spec — posts payload, logs delivery, retries on failure; inbound spec — repeated
   `idempotency_key` is processed only once and mutates the application as expected.
 
-### `[ ]` T014 — Caching
+### `[x]` T014 — Caching
 - **depends_on:** T008
 - **do:** Cache single-application reads, key versioned by `updated_at` (write → key changes →
   auto-invalidation). Cache country config with long TTL.
@@ -292,6 +292,8 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 - [T012] `RiskEvaluationJob` is idempotent via a conditional `UPDATE ... WHERE risk_score IS NULL` (single effect under retries/concurrency). Writing `risk_score` does not change `status`, so it never re-triggers the outbox (no loop). Score = bureau-credit + leverage heuristic, clamped 0..100.
 - [T013] Webhooks signed with HMAC-SHA256 (`WebhookSignature`, `ENV[WEBHOOK_SIGNING_SECRET]`). Outbound `WebhookDeliveryJob` (routed from `status_changed`) POSTs to `WEBHOOK_ENDPOINT_URL` (simulated; default example.com), records every attempt in `webhook_deliveries`, and raises on non-2xx/network error so Sidekiq retries. HTTP via `Webhooks::Client` (Net::HTTP, stubbable).
 - [T013] Inbound `POST /api/v1/webhooks/bank` (JWT-skipped, HMAC-verified over the raw body). `Webhooks::ProcessBankConfirmation` dedupes by `idempotency_key` (pre-check + unique index + race rescue) and applies the confirmation (`flags.bank_confirmed`) exactly once in a transaction. Replay → 200 no-op; bad signature → 401.
+- [T014] Cache store: `redis_cache_store` (namespace `bravo:cache`) in dev/prod, `memory_store` in test. `Applications::CachedView` caches a single application's serialized view keyed by `cache_key_with_version` + PII scope — a write changes `updated_at` → new key → auto-invalidation; no cross-role PII leak. `Countries::Catalog` caches the supported-country config (code + document_type) with a 12h TTL; exposed at `GET /api/v1/countries`.
+- [T014] Pinned `connection_pool ~> 2.4` (resolved 2.5.5): `connection_pool 3.0` changed its constructor and broke `RedisCacheStore` at boot. Test (`memory_store`) didn't catch it — the live dev smoke did.
 
 ## Backlog (out of scope now)
 > Deferred ideas; do not build unless a task references them.

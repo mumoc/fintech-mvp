@@ -85,6 +85,16 @@ RSpec.describe "Api::V1::CreditApplications", type: :request do
 
       expect(response).to have_http_status(:not_found)
     end
+
+    it "serves a repeated read from cache (serializer runs once)" do
+      application = create(:credit_application, :with_bank_record)
+
+      expect(CreditApplicationSerializer).to receive(:new).once.and_call_original
+
+      2.times { get "/api/v1/credit_applications/#{application.id}", headers: auth_headers(operator) }
+
+      expect(response).to have_http_status(:ok)
+    end
   end
 
   describe "GET /api/v1/credit_applications" do
