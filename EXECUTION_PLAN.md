@@ -140,7 +140,7 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 - **GATE:** spec — two concurrent dispatchers never claim the same event (`SKIP LOCKED`); dispatched
   events are marked processed exactly once.
 
-### `[ ]` T012 — Risk job + structured logging
+### `[x]` T012 — Risk job + structured logging
 - **depends_on:** T011
 - **do:** `RiskEvaluationJob` (receives application **id**, idempotent — checks state before writing
   `risk_score`). `StructuredLogger` emitting JSON with `event:`/`country:`/`application_id:`.
@@ -288,6 +288,8 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 - [T011] `Outbox::Dispatcher` claims pending events with `FOR UPDATE SKIP LOCKED` in a transaction, enqueues via `Outbox::Router`, marks processed in the same tx → at-least-once delivery (consumers idempotent). N dispatchers run safely in parallel. `OutboxDispatchJob` (Sidekiq) drains; recurring via `sidekiq-cron` (`config/sidekiq_cron.yml`, every minute — README notes LISTEN/NOTIFY for lower latency).
 - [T011] `Outbox::Router` maps `created`/`status_changed` → `RiskEvaluationJob` (skeleton here; body in T012); `WebhookDeliveryJob` is added in T013. Job names resolved by `constantize` to avoid load-order coupling.
 - [T011] docker-compose `worker` service runs `sidekiq` (scale with `--scale worker=N`). `sidekiq-cron` pinned `>= 2.4` (1.12 had an XSS advisory). Concurrency spec disables transactional fixtures so `SKIP LOCKED` is exercised across real connections.
+- [T012] `StructuredLogger` (`lib/structured_logger.rb`) emits one JSON line per event with `event`/`country`/`application_id`; strips PII keys (`document_number`/`monthly_income`/`full_name`) from the extra payload defensively.
+- [T012] `RiskEvaluationJob` is idempotent via a conditional `UPDATE ... WHERE risk_score IS NULL` (single effect under retries/concurrency). Writing `risk_score` does not change `status`, so it never re-triggers the outbox (no loop). Score = bureau-credit + leverage heuristic, clamped 0..100.
 
 ## Backlog (out of scope now)
 > Deferred ideas; do not build unless a task references them.
