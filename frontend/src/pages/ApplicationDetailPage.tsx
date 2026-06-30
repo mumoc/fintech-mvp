@@ -7,6 +7,7 @@ import { ApiError } from "../api/client";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { RiskBadge } from "../components/RiskBadge";
 import { RiskHelp } from "../components/RiskHelp";
+import { BankConfirmationBadge } from "../components/BankConfirmationBadge";
 import { formatMoney } from "../utils/formatters";
 
 // Events available from each status (mirrors the backend AASM graph).
@@ -90,6 +91,10 @@ export function ApplicationDetailPage() {
           <Field label="Monthly income" value={formatMoney(app.monthly_income, app.country)} />
         )}
         <Field label="Review flags" value={<FlagsSummary flags={app.flags} />} />
+        <Field
+          label="Bank confirmation"
+          value={<BankConfirmationBadge confirmed={app.flags.bank_confirmed === true} />}
+        />
         {app.bank_record && (
           <>
             <Field label="Bank provider" value={app.bank_record.provider} />

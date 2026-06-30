@@ -22,9 +22,13 @@ module Webhooks
       event = nil
       ApplicationRecord.transaction do
         event = WebhookEvent.create!(idempotency_key: @idempotency_key, source: @source, payload: @payload)
-        apply!(event)
+        @application = apply!(event)
         event.update!(processed_at: Time.current)
       end
+
+      # Broadcast AFTER commit so subscribers never see a rolled-back change. The
+      # open UI updates in realtime when the bank confirms (no refresh).
+      broadcast_confirmation
       Result.success(event)
     rescue ActiveRecord::RecordNotUnique, ActiveRecord::RecordInvalid => e
       # Concurrent duplicate: if the key now exists it was a race; otherwise the
@@ -42,6 +46,13 @@ module Webhooks
       return if application.nil?
 
       application.update!(flags: application.flags.merge("bank_confirmed" => true))
+      application
+    end
+
+    def broadcast_confirmation
+      return if @application.nil?
+
+      Applications::Broadcaster.application_changed(@application, event: "bank_confirmed")
     end
   end
 end

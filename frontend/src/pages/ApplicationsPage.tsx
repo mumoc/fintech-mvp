@@ -107,6 +107,11 @@ export function ApplicationsPage() {
                   <td className="py-2">{formatMoney(app.amount_requested, app.country)}</td>
                   <td className="py-2">
                     <span className="rounded bg-gray-100 px-2 py-1 text-xs">{app.status}</span>
+                    {app.flags.bank_confirmed === true && (
+                      <span className="ml-1 text-xs font-semibold text-green-600" title="Bank confirmed">
+                        ✓ bank
+                      </span>
+                    )}
                   </td>
                   <td className="py-2"><RiskBadge score={app.risk_score} /></td>
                   <td className="py-2 text-right">

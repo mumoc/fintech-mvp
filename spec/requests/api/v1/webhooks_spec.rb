@@ -28,6 +28,18 @@ RSpec.describe "Api::V1::Webhooks (inbound bank confirmation)", type: :request d
     expect(application.reload.flags).to include("bank_confirmed" => true)
   end
 
+  it "broadcasts the confirmation over ActionCable (realtime UI update)" do
+    expect { post_bank({ idempotency_key: "bcast", application_id: application.id }) }
+      .to have_broadcasted_to("applications").with { |data| expect(data["event"]).to eq("bank_confirmed") }
+  end
+
+  it "does not re-broadcast a replayed confirmation" do
+    post_bank({ idempotency_key: "bcast2", application_id: application.id })
+
+    expect { post_bank({ idempotency_key: "bcast2", application_id: application.id }) }
+      .not_to have_broadcasted_to("applications")
+  end
+
   it "is idempotent: a replayed idempotency_key is processed only once" do
     payload = { idempotency_key: "k3", application_id: application.id }
 

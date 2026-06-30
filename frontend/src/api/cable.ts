@@ -6,7 +6,7 @@ const CABLE_URL =
   (import.meta.env.VITE_CABLE_URL as string | undefined) ?? "ws://localhost:3000/cable";
 
 export interface ApplicationEvent {
-  event: "created" | "status_changed";
+  event: "created" | "status_changed" | "bank_confirmed";
   application: Application;
 }
 
