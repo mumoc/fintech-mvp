@@ -54,11 +54,11 @@ runs in containers.
 
 ```bash
 git clone <repo-url> && cd fintech-mvp
-make up      # build + boot api + worker + frontend (SPA) + postgres + redis, load schema
-make seed    # users per role + sample MX/ES applications
+make run     # build + boot api, worker, frontend, postgres, redis; then seed sample data
 ```
 
-`make up` waits until the API is healthy and boots the SPA. Open the UI at
+`make run` waits until the API is healthy, boots the SPA, and loads seeded users
+plus sample MX/ES applications. Open the UI at
 **http://localhost:5173** (sign in with a seeded user below). Or use the API
 directly — verify and log in:
 
@@ -77,14 +77,23 @@ Seeded users: `admin@bravo.test`, `analyst@bravo.test`, `operator@bravo.test`.
 Everything else:
 
 ```bash
-make test     # full RSpec suite
-make lint     # RuboCop + bundler-audit
-make console  # Rails console
-make web-test # frontend component tests (Vitest)
-make web-build# frontend production build
-make logs     # tail api logs
-make down     # stop everything
-make help     # list all commands
+make run          # boot the full stack and seed sample data
+make up           # boot the full stack without seeding
+make down         # stop containers
+make build        # build the api image
+make migrate      # create/migrate the database, including triggers
+make seed         # load seeded users and sample applications
+make test         # full RSpec suite
+make lint         # RuboCop + bundler-audit
+make smoke        # end-to-end smoke against the running stack
+make deploy       # apply Kubernetes manifests to the current kube-context
+make web-test     # frontend component tests (Vitest)
+make web-build    # frontend production build
+make k8s-validate # validate Kubernetes manifests without a cluster
+make console      # Rails console
+make logs         # tail api logs
+make ps           # show running containers
+make help         # list all commands
 ```
 
 ## API tour
@@ -113,7 +122,8 @@ curl -s -X PATCH localhost:3000/api/v1/credit_applications/<id>/status -H "$AUTH
   -d '{"credit_application":{"event":"approve","lock_version":0}}'
 ```
 
-Valid sample documents: MX CURP `HEGG560427MVZRRL04`, ES DNI `12345678Z`.
+Valid sample documents: MX CURP `HEGG560427MVZRRL04`, ES DNI `12345678Z`, ES
+NIE `X1234567L`.
 
 ## Assumptions
 
@@ -304,15 +314,23 @@ archival.
 
 ## How to add a country (architectural signature)
 
-Adding a country is *configuration, not code*: create `app/countries/<code>/`
-with the four strategy classes (`Validator`, `BankProvider`, `Normalizer`,
-`StateMachine`) and add **one line** to `Countries::Registry::NAMESPACES`.
-Nothing in controllers, services, jobs, or models changes.
+Adding a country is *configuration, not shared business-code change*:
+
+1. Create `app/countries/<code>/` with the four strategy classes (`Validator`,
+   `BankProvider`, `Normalizer`, `StateMachine`).
+2. Add one line to `Countries::Registry::NAMESPACES`.
+3. Add the Zeitwerk acronym mapping in `config/application.rb`, e.g.
+   `"co" => "CO"`, so `app/countries/co/` resolves to `Countries::CO` instead
+   of `Countries::Co`.
+
+Nothing in controllers, services, jobs, serializers, or models changes.
 
 **Evidence — adding España (ES):**
 
-- **Files changed outside `app/countries/es/`: 1** — `app/countries/registry.rb`
-  (the registry line). No controller/service/job/model touched.
+- **Shared business-code files changed outside `app/countries/es/`: 1** —
+  `app/countries/registry.rb` (the registry line). The Rails autoload acronym
+  mapping lives in `config/application.rb`; no controller/service/job/serializer/
+  model was touched.
 - ES brought a genuinely different DNI mod-23 validator, a different bank-provider
   shape (`total_liabilities`/`scoring`/`account_state`) collapsed by its own
   normalizer, and a different business rule (a €50,000 review threshold vs MX's
@@ -322,8 +340,8 @@ Nothing in controllers, services, jobs, or models changes.
   stayed green.
 
 The measure of the abstraction isn't how fast ES was written — it's that a third
-country is purely additive: a new directory plus one registry line, with no risk
-of disturbing the countries already in production.
+country is purely additive: a new directory, one registry line, and one autoload
+acronym mapping, with no risk of disturbing the countries already in production.
 
 ## Testing
 

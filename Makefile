@@ -6,13 +6,13 @@
 COMPOSE := docker compose
 
 help: ## List available commands
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
+	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
 
 up: ## Boot the full stack (api + worker + frontend + postgres + redis); waits until the api is healthy
 	$(COMPOSE) up -d --build --wait
 
-run: up ## Alias for `up` (boot the full stack)
+run: up seed ## Boot the full stack and seed sample data
 
 down: ## Stop and remove containers
 	$(COMPOSE) down
