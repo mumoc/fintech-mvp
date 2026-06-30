@@ -99,4 +99,26 @@ Key decisions:
 - **Concurrency** — transactional outbox + `SKIP LOCKED`, idempotent jobs, optimistic locking.
 - **Caching** — versioned keys, country-config TTL.
 - **Webhooks** — idempotent inbound, signed outbound with retries.
-- **How to add a country** — the four classes under `app/countries/<code>/` + one registry line.
+
+## How to add a country (architectural signature)
+
+Adding a country is *configuration, not code*: create `app/countries/<code>/`
+with the four strategy classes (`Validator`, `BankProvider`, `Normalizer`,
+`StateMachine`) and add **one line** to `Countries::Registry::NAMESPACES`.
+Nothing in controllers, services, jobs, or models changes.
+
+**Evidence — adding España (ES):**
+
+- **Files changed outside `app/countries/es/`: 1** — `app/countries/registry.rb`
+  (the registry line). No controller/service/job/model touched.
+- ES brought a genuinely different DNI mod-23 validator, a different bank-provider
+  shape (`total_liabilities`/`scoring`/`account_state`) collapsed by its own
+  normalizer, and a different business rule (a €50,000 review threshold vs MX's
+  30× income ratio) — all sealed inside `app/countries/es/`.
+- The existing create / list / show / status pipeline, transactional outbox,
+  risk job, and webhooks handle ES with zero changes; the full MX test suite
+  stayed green.
+
+The measure of the abstraction isn't how fast ES was written — it's that a third
+country is purely additive: a new directory plus one registry line, with no risk
+of disturbing the countries already in production.

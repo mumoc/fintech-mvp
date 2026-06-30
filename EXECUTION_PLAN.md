@@ -162,7 +162,7 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 - **GATE:** spec — second read served from cache; after update the cache key changes (stale data not
   served); country config served from cache within TTL.
 
-### `[ ]` T015 — Add ES  *(the signature task — time-box ≤ 1h)*
+### `[x]` T015 — Add ES  *(the signature task — time-box ≤ 1h)*
 - **depends_on:** T006, T009, T013
 - **do:** Implement **ES** strategy only by adding `countries/es/` (Validator: DNI 8-digit + **mod-23
   letter check**; BankProvider with a *different* shape; Normalizer mapping it to the internal struct;
@@ -294,6 +294,7 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 - [T013] Inbound `POST /api/v1/webhooks/bank` (JWT-skipped, HMAC-verified over the raw body). `Webhooks::ProcessBankConfirmation` dedupes by `idempotency_key` (pre-check + unique index + race rescue) and applies the confirmation (`flags.bank_confirmed`) exactly once in a transaction. Replay → 200 no-op; bad signature → 401.
 - [T014] Cache store: `redis_cache_store` (namespace `bravo:cache`) in dev/prod, `memory_store` in test. `Applications::CachedView` caches a single application's serialized view keyed by `cache_key_with_version` + PII scope — a write changes `updated_at` → new key → auto-invalidation; no cross-role PII leak. `Countries::Catalog` caches the supported-country config (code + document_type) with a 12h TTL; exposed at `GET /api/v1/countries`.
 - [T014] Pinned `connection_pool ~> 2.4` (resolved 2.5.5): `connection_pool 3.0` changed its constructor and broke `RedisCacheStore` at boot. Test (`memory_store`) didn't catch it — the live dev smoke did.
+- [T015] **Signature proven.** Added España with only `app/countries/es/` (DNI mod-23 validator, different bank shape + normalizer, €50,000 review-threshold state machine) + ONE line in `Registry::NAMESPACES`. **1** file changed outside `app/countries/es/` (the registry); MX suite stayed green. The evidence is expandability/isolation (a third country is purely additive), not implementation time. ES threshold = €50,000; MX ratio limit = 30×.
 
 ## Backlog (out of scope now)
 > Deferred ideas; do not build unless a task references them.

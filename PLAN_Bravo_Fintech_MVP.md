@@ -321,7 +321,7 @@ Tu regla: Foundation & API antes de Client; enablers backend antes de web. El ri
 9. `RiskEvaluationJob` idempotente. Structured logger (F11).
 10. Webhooks inbound + outbound (F8).
 11. Caching (F9).
-12. **Agregar ES.** Aquí cronometras: si tarda más de ~1h crear el segundo país, la abstracción del día 1 falló y hay que ajustarla. Si es trivial, *ese cronómetro es tu mejor evidencia de Staff* → va al README.
+12. **Agregar ES.** La prueba de la abstracción no es cuánto tardas, sino el **aislamiento y la expandibilidad**: agregar el segundo país debe ser *puramente aditivo* — crear `app/countries/es/` (validador DNI, proveedor con otra forma, normalizer, state machine) + **una línea** en el registry, sin tocar controllers/services/jobs/models y sin riesgo de perturbar el país ya en producción. Si te obliga a editar código compartido, la abstracción del día 1 falló y hay que ajustarla. Esa propiedad — *un tercer país = una carpeta + una línea* — es la evidencia de Staff que va al README (no el tiempo de implementación).
 13. README: Technical decisions, Security, Concurrency, Caching, Webhooks.
 
 **Fin del día 2: sistema completo backend, dos países, async sólido.**
