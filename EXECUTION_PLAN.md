@@ -205,7 +205,7 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
   role + sample MX/ES applications across states.
 - **GATE:** **fresh clone** → `make up && make seed` completes < 5 min; end-to-end smoke passes.
 
-### `[ ]` T020 — README: scalability + finalize
+### `[x]` T020 — README: scalability + finalize
 - **depends_on:** all above
 - **do:** Write the scalability analysis (indexes, partitioning by `LIST(country)` + `RANGE(created_at)`,
   archival of terminal-state partitions, critical queries, bottlenecks). Add architecture diagram and
@@ -230,22 +230,22 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 
 ## DELIVERABLES CHECKLIST (req mapping — agent self-verifies at T020)
 
-- `[ ]` Create / validate-per-country / bank integration / show / list / update-status  (req 3.1–3.6)
-- `[ ]` Async via DB trigger → queue  (req 3.7)
-- `[ ]` Webhook inbound or outbound integrated with application model  (req 3.8)
-- `[ ]` Parallel workers without inconsistency (SKIP LOCKED documented)  (req 3.9)
-- `[ ]` Near-realtime frontend  (req 3.10, §5)
-- `[ ]` Layered architecture, country/provider extensible without disruptive change  (req 4.1)
-- `[ ]` JWT + basic authorization + PII handling  (req 4.2)
-- `[ ]` Structured logs + explicit error handling + async traceability  (req 4.3)
-- `[ ]` Reproducible, README install < 5 min  (req 4.4)
-- `[ ]` Scalability analysis in README (indexes/partitioning/archival/queries)  (req 4.5)
-- `[ ]` Queue tech explained + produce/consume shown  (req 4.6)
-- `[ ]` Caching + invalidation strategy documented  (req 4.7)
-- `[ ]` K8s manifests for all components  (req 4.8)
-- `[ ]` Frontend: create/list/detail/update-status/realtime + error handling  (§5)
-- `[ ]` README full (assumptions, data model, decisions, security, scalability, concurrency/queue/cache/webhooks)  (§6)
-- `[ ]` Makefile / Justfile with standard commands  (§6.4)
+- `[x]` Create / validate-per-country / bank integration / show / list / update-status  (req 3.1–3.6)
+- `[x]` Async via DB trigger → queue  (req 3.7)
+- `[x]` Webhook inbound or outbound integrated with application model  (req 3.8)
+- `[x]` Parallel workers without inconsistency (SKIP LOCKED documented)  (req 3.9)
+- `[x]` Near-realtime frontend  (req 3.10, §5)
+- `[x]` Layered architecture, country/provider extensible without disruptive change  (req 4.1)
+- `[x]` JWT + basic authorization + PII handling  (req 4.2)
+- `[x]` Structured logs + explicit error handling + async traceability  (req 4.3)
+- `[x]` Reproducible, README install < 5 min  (req 4.4)
+- `[x]` Scalability analysis in README (indexes/partitioning/archival/queries)  (req 4.5)
+- `[x]` Queue tech explained + produce/consume shown  (req 4.6)
+- `[x]` Caching + invalidation strategy documented  (req 4.7)
+- `[x]` K8s manifests for all components  (req 4.8)
+- `[x]` Frontend: create/list/detail/update-status/realtime + error handling  (§5)
+- `[x]` README full (assumptions, data model, decisions, security, scalability, concurrency/queue/cache/webhooks)  (§6)
+- `[x]` Makefile / Justfile with standard commands  (§6.4)
 
 ---
 
@@ -296,6 +296,7 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 - [T014] Pinned `connection_pool ~> 2.4` (resolved 2.5.5): `connection_pool 3.0` changed its constructor and broke `RedisCacheStore` at boot. Test (`memory_store`) didn't catch it — the live dev smoke did.
 - [M2 checkpoint] `db/seeds.rb` added (idempotent): one user per role (`*@bravo.test`, password `password123`) + 4 sample apps (MX/ES × received/under_review) created via the real pipeline. Added `has_many :webhook_deliveries, dependent: :destroy` so deliveries cascade on destroy. README expanded: mermaid architecture, <5-min setup, API tour, Technical decisions/Security/Concurrency/Caching/Webhooks. Tagged `m2-complete`. (T019 still owns the Makefile `deploy` target + final seed polish.)
 - [T016] Frontend = React + Tailwind + Vite + Vitest in `frontend/` (TypeScript). Pages: login, list (country/status filters + pagination), create (surfaces 422 validation messages), detail with state-machine status transitions (sends `lock_version`, handles 409 by reloading). `ApiError` normalizes `{error, messages}` so failures are shown explicitly. Auth = JWT in localStorage. Component tests: list renders from a mocked API; invalid document shows the 422 message.
+- [T020] README finalized: full **Scalability** section (composite/partial/BRIN indexes, `LIST(country)` + `RANGE(created_at)` partitioning with pruning + `pg_partman`, critical-query table, bottlenecks/mitigations, O(1) partition-drop archival to S3+Parquet), plus **What I'd do with more time** and Project status. Deliverables Checklist fully `[x]`. Build complete → tag `v1.0`.
 - [T019] Makefile complete: `run` (alias `up`), up/down/build, migrate, seed, test, lint, **smoke**, **deploy** (`kubectl apply -f k8s/`), web-build/web-test, k8s-validate, console/logs/ps. Seeds idempotent: 3 users per role (`*@bravo.test` / `password123`) + 4 sample apps spread across **received / under_review / approved / rejected** (MX+ES), created via the real pipeline + state transitions. `bin/smoke.sh` = end-to-end smoke (login → countries → list → create). **Verified: wiped-volume `make up && make seed` in 74s (<5 min); `make smoke` passes.**
 - [T018] K8s manifests in `k8s/`: namespace, configmap, `secrets.example.yaml` (REPLACE_ME placeholders only), postgres (Deployment+PVC+Service), redis, api (Deployment + migrate initContainer + Service, `/up` probes), worker (sidekiq), dispatcher (runs `rake outbox:dispatch`), frontend, ingress (WS-friendly). `api`/`worker`/`dispatcher` scale by `replicas` (SKIP LOCKED + idempotent jobs). Added `lib/tasks/outbox.rake` (`outbox:dispatch` drain loop) as the dedicated dispatcher process. Validated with **kubeconform 15/15** (`make k8s-validate`); no local cluster for the literal `kubectl apply --dry-run=client`, which the README/Makefile note for cluster envs.
 - [T017] Realtime via ActionCable. `ApplicationsChannel` (one shared stream `applications`); `ApplicationCable::Connection` authenticates the JWT from the `?token=` query param (browsers can't set WS headers). `Applications::Broadcaster` broadcasts the **redacted (non-PII)** view on create + status change (called from the controller). Cable adapter = redis in dev/prod (cross-process), test adapter in test; `allowed_request_origins` = `FRONTEND_ORIGINS`. Frontend `src/api/cable.ts` (`@rails/actioncable`) → list refetches on any event, detail reloads on a matching id. Live e2e: API status change → broadcast received in ~120ms, no PII.
