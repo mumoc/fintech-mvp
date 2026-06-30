@@ -34,6 +34,11 @@ module Bravo
       g.orm :active_record, primary_key_type: :uuid
     end
 
+    # SQL schema format: the async design relies on PL/pgSQL triggers/functions,
+    # which the Ruby schema dumper cannot represent. db/structure.sql captures
+    # them so the test DB (loaded from the dump) has the triggers too.
+    config.active_record.schema_format = :sql
+
     # Active Record encryption keys. Set here (not in an initializer) because the
     # active_record.encryption railtie applies these before config/initializers
     # run. In production these come from the secrets manager / ENV; the dev

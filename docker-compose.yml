@@ -4,7 +4,7 @@
 # the environment in non-local environments (see .env.example / k8s).
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:15-alpine
     environment:
       POSTGRES_USER: ${DATABASE_USER:-bravo}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-bravo}

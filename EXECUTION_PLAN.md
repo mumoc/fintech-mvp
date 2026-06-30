@@ -124,7 +124,7 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 - **GATE:** valid transition → `200` + transition row; invalid transition (guard) → `422`, state
   unchanged; stale `lock_version` → `409`.
 
-### `[ ]` T010 — PG triggers: outbox + audit
+### `[x]` T010 — PG triggers: outbox + audit
 - **depends_on:** T009
 - **do:** Reversible migration with PL/pgSQL. Trigger on `credit_applications`/`state_transitions`
   inserts into `outbox_events` **within the same transaction**. Generic audit trigger writes
@@ -281,6 +281,10 @@ clean, the Deliverables Checklist (bottom) is fully checked, and no PII/secret i
 - [T009] AASM lives in `Countries::Base::StateMachine` (a PORO wrapping the application), inherited by each country — keeps the model free of state/country logic. AASM persistence hooks (`aasm_read_state`/`aasm_write_state`) make the wrapped application's `status` the source of truth. Shared transition graph: received → under_review/approved/rejected/cancelled; under_review → approved/rejected/cancelled. A country can override the graph; MX uses the shared one.
 - [T009] `Applications::UpdateStatus`: validates via `may_<event>?`, fires the event, records a `state_transition`, persists in a transaction. Unknown/guard-blocked event → `:invalid_transition` (422, state unchanged). Optimistic locking: the client's `lock_version` is assigned to the loaded record before save; mismatch → `ActiveRecord::StaleObjectError` → `:conflict` (409). The transition-validity check runs before the lock check.
 - [T009] `PATCH /api/v1/credit_applications/:id/status` (Pundit `update_status?` = analyst/admin; operator → 403). Body: `{credit_application:{event, lock_version, reason}}`.
+- [T010] Schema format switched to `:sql` (`db/structure.sql`) so PL/pgSQL triggers/functions are captured and exist in the test DB; `db/schema.rb` removed.
+- [T010] Postgres pinned to **15-alpine** to match the Debian-bookworm `pg_dump` client (a 16 server broke the `structure.sql` dump with a version mismatch). No feature in use needs 16.
+- [T010] Outbox trigger on `credit_applications` emits **exactly one** event: INSERT → `created`, status-changing UPDATE → `status_changed` (payload = status/country/from/to — never PII). `state_transitions` does not emit (avoids double events). Partial index `(created_at) WHERE processed_at IS NULL` for the dispatcher.
+- [T010] Generic `write_audit_log` trigger on `credit_applications` writes the old/new row image to `audit_logs`; encrypted columns are captured as ciphertext (no plaintext PII).
 
 ## Backlog (out of scope now)
 > Deferred ideas; do not build unless a task references them.
