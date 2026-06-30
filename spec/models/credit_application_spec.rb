@@ -23,6 +23,7 @@ RSpec.describe CreditApplication, type: :model do
   describe "associations" do
     it { is_expected.to have_one(:bank_record).dependent(:destroy) }
     it { is_expected.to have_many(:state_transitions).dependent(:destroy) }
+    it { is_expected.to have_many(:webhook_deliveries).dependent(:destroy) }
   end
 
   describe "PII encryption at rest" do

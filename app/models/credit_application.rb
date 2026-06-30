@@ -1,6 +1,7 @@
 class CreditApplication < ApplicationRecord
   has_one :bank_record, dependent: :destroy
   has_many :state_transitions, dependent: :destroy
+  has_many :webhook_deliveries, dependent: :destroy
 
   # PII at rest. document_number is deterministic so it can be searched / deduped
   # by exact match; full_name and monthly_income never need search → stronger,
