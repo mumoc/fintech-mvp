@@ -53,7 +53,7 @@ runs in containers.
 
 ```bash
 git clone <repo-url> && cd fintech-mvp
-make up      # build image, boot api + postgres + redis + worker, load schema
+make up      # build + boot api + worker + frontend (SPA) + postgres + redis, load schema
 make seed    # users per role + sample MX/ES applications
 ```
 

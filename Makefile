@@ -9,7 +9,7 @@ help: ## List available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-10s\033[0m %s\n", $$1, $$2}'
 
-up: ## Boot api + postgres + redis and wait until the api is healthy
+up: ## Boot the full stack (api + worker + frontend + postgres + redis); waits until the api is healthy
 	$(COMPOSE) up -d --build --wait
 
 down: ## Stop and remove containers
