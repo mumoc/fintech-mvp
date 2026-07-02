@@ -91,7 +91,7 @@ make web-test     # frontend component tests (Vitest)
 make web-build    # frontend production build
 make k8s-validate # validate Kubernetes manifests without a cluster
 make console      # Rails console
-make logs         # tail api logs
+make logs         # tail all logs; use SERVICES="api worker" to filter
 make ps           # show running containers
 make help         # list all commands
 ```

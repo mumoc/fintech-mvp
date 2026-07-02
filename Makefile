@@ -4,6 +4,7 @@
 .PHONY: help up run down build migrate seed test lint smoke deploy web-build web-test k8s-validate console logs ps
 
 COMPOSE := docker compose
+SERVICES ?=
 
 help: ## List available commands
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -52,8 +53,8 @@ k8s-validate: ## Validate the Kubernetes manifests (schema check; no cluster nee
 console: ## Open a Rails console
 	$(COMPOSE) run --rm api ./bin/rails console
 
-logs: ## Tail api logs
-	$(COMPOSE) logs -f api
+logs: ## Tail logs for all services, or pass SERVICES="api worker"
+	$(COMPOSE) logs -f $(SERVICES)
 
 ps: ## Show running containers
 	$(COMPOSE) ps
