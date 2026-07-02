@@ -23,6 +23,27 @@ RSpec.describe RiskEvaluationJob do
     expect(AuditLog.where(record_id: application.id, action: "UPDATE").count).to eq(1)
   end
 
+  it "broadcasts the updated application when risk scoring completes" do
+    application = create(:credit_application, :with_bank_record)
+
+    expect {
+      described_class.new.perform(application.id)
+    }.to have_broadcasted_to("applications").with(
+      hash_including(
+        event: "risk_evaluated",
+        application: hash_including(id: application.id)
+      )
+    )
+  end
+
+  it "does not broadcast when risk scoring is skipped" do
+    application = create(:credit_application, :with_bank_record, risk_score: 42)
+
+    expect {
+      described_class.new.perform(application.id)
+    }.not_to have_broadcasted_to("applications")
+  end
+
   it "logs structured JSON with the required keys and no PII" do
     io = StringIO.new
     original_logger = Rails.logger

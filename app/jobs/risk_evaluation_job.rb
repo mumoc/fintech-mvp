@@ -22,6 +22,7 @@ class RiskEvaluationJob
     if affected.zero?
       logger.info(event: "risk_evaluation.skipped", application_id: application.id, country: application.country)
     else
+      Applications::Broadcaster.application_changed(application.reload, event: "risk_evaluated")
       logger.info(
         event: "risk_evaluation.completed",
         application_id: application.id,
