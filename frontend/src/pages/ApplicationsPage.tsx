@@ -58,6 +58,7 @@ export function ApplicationsPage() {
           <option value="">All countries</option>
           <option value="MX">MX</option>
           <option value="ES">ES</option>
+          <option value="CO">CO</option>
         </select>
         <select
           aria-label="Filter by status"

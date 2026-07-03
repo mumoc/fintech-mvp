@@ -81,7 +81,7 @@ export function NewApplicationPage() {
             value={form.document_number}
             onChange={(e) => update("document_number", e.target.value)}
             autoComplete="off"
-            placeholder="MX CURP or ES DNI"
+            placeholder="MX CURP, ES DNI, or CO cedula"
             className="w-full rounded border px-3 py-2"
           />
         </label>

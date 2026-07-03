@@ -8,7 +8,8 @@ module Countries
     # One line per supported country — the architectural signature.
     NAMESPACES = {
       "MX" => MX,
-      "ES" => ES
+      "ES" => ES,
+      "CO" => CO
     }.freeze
 
     class << self

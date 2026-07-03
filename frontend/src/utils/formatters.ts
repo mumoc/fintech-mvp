@@ -1,4 +1,5 @@
 const CURRENCY_BY_COUNTRY: Record<string, string> = {
+  CO: "COP",
   ES: "EUR",
   MX: "MXN",
 };

@@ -12,6 +12,16 @@ RSpec.describe Countries::Registry do
       expect(config.state_machine).to eq(Countries::MX::StateMachine)
     end
 
+    it "returns the CO strategy bundle" do
+      config = described_class.for("CO")
+
+      expect(config.code).to eq("CO")
+      expect(config.validator).to eq(Countries::CO::Validator)
+      expect(config.bank_provider).to eq(Countries::CO::BankProvider)
+      expect(config.normalizer).to eq(Countries::CO::Normalizer)
+      expect(config.state_machine).to eq(Countries::CO::StateMachine)
+    end
+
     it "raises for an unsupported country" do
       expect { described_class.for("XX") }
         .to raise_error(Countries::Registry::UnsupportedCountryError)
@@ -20,10 +30,11 @@ RSpec.describe Countries::Registry do
 
   describe ".supported?" do
     it { expect(described_class.supported?("MX")).to be(true) }
+    it { expect(described_class.supported?("CO")).to be(true) }
     it { expect(described_class.supported?("ZZ")).to be(false) }
   end
 
   it "lists the supported codes" do
-    expect(described_class.codes).to include("MX")
+    expect(described_class.codes).to include("MX", "CO")
   end
 end

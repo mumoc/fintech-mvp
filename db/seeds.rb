@@ -1,4 +1,4 @@
-# Idempotent seed: one user per role + sample MX/ES applications.
+# Idempotent seed: one user per role + sample MX/ES/CO applications.
 # Run with `make seed` (./bin/rails db:seed). Safe to run repeatedly.
 
 DEFAULT_PASSWORD = "password123".freeze
@@ -28,7 +28,11 @@ samples = [
   { country: "ES", full_name: "Carlos Ruiz", document_number: "12345678Z",
     amount_requested: 40_000, monthly_income: 4_000 },
   { country: "ES", full_name: "Lucía Soler", document_number: "00000000T",
-    amount_requested: 60_000, monthly_income: 5_000 } # over EUR 50k -> under_review
+    amount_requested: 60_000, monthly_income: 5_000 }, # over EUR 50k -> under_review
+  { country: "CO", full_name: "Camila Rojas", document_number: "1020304050",
+    amount_requested: 20_000_000, monthly_income: 3_000_000 },
+  { country: "CO", full_name: "Andrés Pérez", document_number: "1098765432",
+    amount_requested: 100_000_000, monthly_income: 3_000_000 } # over 30x ratio -> under_review
 ]
 
 created = {}

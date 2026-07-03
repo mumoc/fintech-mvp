@@ -66,7 +66,7 @@ module Bravo
       Object.const_set(:Countries, Module.new) unless Object.const_defined?(:Countries)
 
       main = Rails.autoloaders.main
-      main.inflector.inflect("mx" => "MX", "es" => "ES")
+      main.inflector.inflect("mx" => "MX", "es" => "ES", "co" => "CO")
       main.push_dir(countries_dir, namespace: Countries)
     end
   end
